@@ -29,6 +29,14 @@
         
 	var workarea = container.append("g");
         
+    function resize_container() {
+        container.attr("width", window.innerWidth-20).attr("height", window.innerHeight-20);
+    }
+        
+    resize_container();
+        
+    window.addEventListener("resize", resize_container);
+        
     //--------------------------//
 
 	var graph = [];
