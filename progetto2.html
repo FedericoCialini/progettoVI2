@@ -40,7 +40,7 @@
     //--------------------------//
 
 	var graph = [];
-	d3.json("graph.json").then(function(data) {
+	d3.json("clusters.json").then(function(data) {
 		console.log(data);
 		graph[0] = data;
 		console.log(graph);
@@ -63,7 +63,7 @@
 			coordinateMap.set(k,{id:"0",x:workarea_center_x,y:workarea_center_y});
 		});
 
-	function retrieveElementFromGraphByPathId(path){//path as to be list: [0,1,0]
+	function retrieveElementFromGraphByPathId(path){   //path as to be list: [0,1,0]
 		var i = 0;
 		var g = graph[0];
 		while (path[i]!=null) {
