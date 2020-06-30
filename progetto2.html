@@ -13,10 +13,23 @@
 	const workarea_center_x = workarea_width/2;
 	const workarea_center_y = workarea_height/2;
 	var coordinateMap = new Map();
-
-	var workarea = d3.select("body")
+    
+    //--------------------------//
+    
+    var container = d3.select("body")
 		.append("svg")
-		.attr("width", workarea_width).attr("height", workarea_height);
+		.attr("width", workarea_width).attr("height", workarea_height)
+        //.attr("viewBox", "0 0 "+workarea_width+" "+workarea_height)
+        //.attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("style", "outline: medium solid black;")
+        .call(d3.zoom().on("zoom", function () {
+            workarea.attr("transform", d3.event.transform);
+        }))
+        .on("dblclick.zoom", null);
+        
+	var workarea = container.append("g");
+        
+    //--------------------------//
 
 	var graph = [];
 	d3.json("graph.json").then(function(data) {
