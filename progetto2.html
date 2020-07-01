@@ -12,7 +12,7 @@
 	const workarea_height = 900;
 	const workarea_center_x = workarea_width/2;
 	const workarea_center_y = workarea_height/2;
-	var coordinateMap = new Map();
+	const distance = 50;
     
     //--------------------------//
     
@@ -74,14 +74,22 @@
 
         constructor(parent_node, element_list) {
             this.parent = parent_node;  //parent_node is the actual display object representing the parent node (the workarea for the root plane)
+            console.log(this.parent);
             this.numberOfElements = element_list.length;
+            console.log(this.numberOfElements);
             this.elements = element_list;
+            console.log(this.elements);
             this.elementCoords = this.generateElementsCoords();
+            console.log(this.elementCoords);
         }
 
-        get elements() {
+
+
+        /*get elements() {
             return this.elements;
-        }
+        }*/
+
+
 
         generateElementsCoords() {
             var element2coords = [];
@@ -97,6 +105,62 @@
         
         displayPlane() {
             // WIP
+            var fatherid = this.parent.attributes.id.value;
+            console.log(fatherid);
+            console.log(this.parent.attributes.x.value+","+this.parent.attributes.y.value);
+            var x = this.parent.attributes.x.value;
+            var y = this.parent.attributes.y.value;
+            var copy = this.elementCoords;
+            console.log(copy);
+            console.log(x);
+            console.log(y);
+            workarea
+            	.append("rect")
+            	.attr("id",fatherid)
+            	.attr("x",x)
+            	.attr("y",y)
+            	.attr("rx", 10)
+				.attr("ry", 10)
+				.attr("width", this.elementCoords.length*100)
+				.attr("height", this.elementCoords.length*100)
+				.attr("fill", "blue")
+				.attr("fill-opacity",0.2)
+				.attr("stroke-width", 2)
+				.attr("stroke", "black")
+            this.elements.forEach(function(d, i) {
+			//var xy = assignCoordinates();
+			console.log(d + " " + i);
+			if(d[0]!=null){
+				workarea
+					.append("rect")
+					.attr("id",fatherid+","+i)
+					.attr("fatherid",fatherid)
+					.attr("x", parseInt(parseInt(x) + parseInt(copy[i][0])*distance))
+					.attr("y", parseInt(parseInt(y) + parseInt(copy[i][1])*distance))
+					.attr("rx", 10)
+					.attr("ry", 10)
+					.attr("width", 50)
+					.attr("height", 50)
+					.attr("fill", "red")
+					.attr("stroke-width", 2)
+					.attr("stroke", "black")
+					.on("click", explode);
+			}
+			else {
+				workarea
+					.append("circle")
+					.attr("id",fatherid+","+i)
+					.attr("fatherid",fatherid)
+					.attr("info", d)
+					.attr("cx", parseInt(parseInt(x)+parseInt(copy[i][0])*distance))
+					.attr("cy", parseInt(parseInt(y)+parseInt(copy[i][1])*distance))
+					.attr("r", 25)
+					.attr("fill", "green")
+					.attr("stroke-width", 2)
+					.attr("stroke", "black")
+					.on("click", info);
+			}
+			});
         }
         
         hidePlane() {
@@ -107,6 +171,7 @@
         
     //--------------------------//
 
+	
 	var graph = [];
 	d3.json("clusters.json").then(function(data) {
 		console.log(data);
@@ -127,8 +192,6 @@
 			.attr("stroke-width", 2)
 			.attr("stroke", "black")
 			.on("click", explode);
-			k=workarea_center_x+","+workarea_center_y;
-			coordinateMap.set(k,{id:"0",x:workarea_center_x,y:workarea_center_y});
 		});
 
 	function retrieveElementFromGraphByPathId(path){   //path as to be list: [0,1,0]
@@ -164,67 +227,20 @@
 		return list;
 	}
 
-	//default map.set delete the old record and overwrite it with the new one, this one is here just in case
-	function mapInsertWithNoOverwrite(k,v){
-		if(coordinateMap.has(k)){
-			console.log("già c'è");
-		}
-		else {
-			coordinateMap.set(k,v);
-		}
-	}
-
 	function info(){
 		console.log(this.attributes.id.value+";"+this.attributes.x.value+","+this.attributes.y.value+";"+this.attributes.info.value);
 	}
 
 	function explode(event){
 		console.log(this.attributes.id.value+";"+this.attributes.x.value+","+this.attributes.y.value);
-		var fatherid =this.attributes.id.value;
-		var fatherxy = this.attributes.x.value+this.attributes.y.value;
+		var fatherid = this.attributes.id.value;
 		var listid = idStringToList(fatherid);
 		var a = retrieveElementFromGraphByPathId(listid);
-		a.forEach(function(d, i) {
-			var xy = assignCoordinates();
-			console.log(d + " " + i);
-			if(d[i]!=null){
-				workarea
-					.append("rect")
-					.attr("id",fatherid+","+i)
-					.attr("fatherid",fatherid)
-					.attr("x", xy.x)
-					.attr("y", xy.y)
-					.attr("rx", 10)
-					.attr("ry", 10)
-					.attr("width", 50)
-					.attr("height", 50)
-					.attr("fill", "red")
-					.attr("stroke-width", 2)
-					.attr("stroke", "black")
-					.on("click", explode);
-			}
-			else {
-				workarea
-					.append("rect")
-					.attr("id",fatherid+","+i)
-					.attr("fatherid",fatherid)
-					.attr("info", d)
-					.attr("x", xy.x)
-					.attr("y", xy.y)
-					.attr("rx", 10)
-					.attr("ry", 10)
-					.attr("width", 50)
-					.attr("height", 50)
-					.attr("fill", "red")
-					.attr("stroke-width", 2)
-					.attr("stroke", "black")
-					.on("click", info);
-			}
-			var k = xy.x+","+xy.y;
-			coordinateMap.set(k,{id:fatherid+i,x:xy.x,y:xy.y});
-			});
+		console.log(this);
+		console.log(a);
+		var plane = new Plane(this,a);
+		plane.displayPlane();
 		workarea.select("[id='"+fatherid+"']").remove();
-		coordinateMap.delete(fatherxy);
 	}
 
 	function assignCoordinates(){
@@ -234,9 +250,7 @@
 			var x = Math.floor(Math.random() * 1601);
 			var y = Math.floor(Math.random() * 901);
 			var k =x+","+y;
-			if(coordinateMap.has(k)==false){
-				return {x:x,y:y};
-			}
+			return {x:x,y:y};	
 		}
 	}
 
