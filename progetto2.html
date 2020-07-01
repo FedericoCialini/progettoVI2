@@ -76,6 +76,7 @@
             this.parent = parent_node;  //parent_node is the actual display object representing the parent node (the workarea for the root plane)
             this.numberOfElements = element_list.length;
             this.elements = element_list;
+            this.elementCoords = this.generateElementsCoords();
         }
 
         get elements() {
@@ -83,7 +84,7 @@
         }
 
         generateElementsCoords() {
-            var element2coords = {};
+            var element2coords = [];
             var Xcoords = shuffle(generateIntArrayWithRange(1,this.numberOfElements));
             var Ycoords = shuffle(generateIntArrayWithRange(1,this.numberOfElements));
             for(var i=0; i<this.numberOfElements; i++) {
@@ -95,17 +96,13 @@
         }
         
         displayPlane() {
-            //TODO
+            // WIP
         }
         
         hidePlane() {
-            //TODO
+            // WIP
         }
         
-        updatePlane() {
-            //TODO
-        }
-
     }
         
     //--------------------------//
