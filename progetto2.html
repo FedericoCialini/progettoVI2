@@ -73,7 +73,7 @@
     class Plane {
 
         constructor(parent_node, element_list) {
-            this.parent = parent_node;  //parent_node is the actual display object representing the parent node, or null for the root plane
+            this.parent = parent_node;  //parent_node is the actual display object representing the parent node (the workarea for the root plane)
             this.numberOfElements = element_list.length;
             this.elements = element_list;
         }
@@ -99,6 +99,10 @@
         }
         
         hidePlane() {
+            //TODO
+        }
+        
+        updatePlane() {
             //TODO
         }
 
