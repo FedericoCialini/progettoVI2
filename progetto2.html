@@ -70,18 +70,28 @@
         return array;
     }
         
+    function centerRectX(x) {
+        return x - cluster_rect_width/2;
+    }
+        
+    function centerRectY(y) {
+        return y - cluster_rect_height/2;
+    }
+        
     //--------------------------//
+        
+    id2plane = {};
         
     // classes do exist in javascript! (it's just syntactic sugar though)
     // this class represent a logical plane, through which we're going to display a cluster's elements
     class Plane {
 
-        constructor(this_node, parent_node, element_list) {
+        constructor(this_node, element_list, is_root_node) {
             this.node = this_node;
-            this.parent = parent_node;  //parent_node is the actual display object representing the parent node (the workarea for the root plane)
             this.numberOfElements = element_list.length;
             this.elements = element_list;
             this.elementCoords = this.generateElementsCoords();
+            this.is_root_node = is_root_node;
         }
         
         generateElementsCoords() {
@@ -105,13 +115,12 @@
             this.elements.forEach(function(d, i) {
                 console.log(d + " " + i);
                 if(d[0]!=null){
-                    this.parent
+                    workarea
                         .append("rect")
                         .attr("id",thisId+","+i)
                         .attr("class","cluster_node")
-                        .attr("parentId",thisId)
-                        .attr("x", parseInt(parseInt(x) + parseInt(this.elementCoords[i][0])*distance))
-                        .attr("y", parseInt(parseInt(y) + parseInt(this.elementCoords[i][1])*distance))
+                        .attr("x", centerRectX(parseInt(parseInt(x) + parseInt(this.elementCoords[i][0])*distance)))
+                        .attr("y", centerRectY(parseInt(parseInt(y) + parseInt(this.elementCoords[i][1])*distance)))
                         .attr("rx", 10)
                         .attr("ry", 10)
                         .attr("width", cluster_rect_width)
@@ -122,11 +131,10 @@
                         .on("click", explode);
                 }
                 else {
-                    this.parent
+                    workarea
                         .append("circle")
                         .attr("id",thisId+","+i)
                         .attr("class","node")
-                        .attr("parentId",thisId)
                         .attr("info", d)
                         .attr("cx", parseInt(parseInt(x)+parseInt(this.elementCoords[i][0])*distance))
                         .attr("cy", parseInt(parseInt(y)+parseInt(this.elementCoords[i][1])*distance))
@@ -143,7 +151,7 @@
             var thisId = this.node.attributes.id.value;
             var x = this.node.attributes.x.value;
             var y = this.node.attributes.y.value;
-            this.parent
+            workarea
                 .append("rect")
                 .attr("id",thisId)
                 .attr("class","cluster_bg")
@@ -157,11 +165,12 @@
                 .attr("fill-opacity",0.2)
                 .attr("stroke-width", 2)
                 .attr("stroke", "black")
+                .on("dblclick", implode);
         }
         
         displayPlane() {
             // if this is the root cluster node
-            if(this.parent === workarea) {
+            if(this.is_root_node) {
                 this.displayChildren()
                 
             // if this is NOT the root cluster node
@@ -172,7 +181,24 @@
         }
         
         hidePlane() {
-            // TODO
+            var thisId = this.node.attributes.id.value;
+            workarea.selectAll("[id^='"+thisId+"']").remove();
+            
+            var x = this.node.attributes.x.value;
+            var y = this.node.attributes.y.value;
+            workarea.append("rect")
+                .attr("id",thisId)
+                .attr("class","cluster_node")
+                .attr("x", x)
+                .attr("y", y)
+                .attr("rx", 10)
+                .attr("ry", 10)
+                .attr("width", cluster_rect_width)
+                .attr("height", cluster_rect_height)
+                .attr("fill", "red")
+                .attr("stroke-width", 2)
+                .attr("stroke", "black")
+                .on("click", explode);
         }
         
     }
@@ -207,14 +233,10 @@
         var thisId = "0";
 		var thisIdAsPath = [0];
 		var thisJsonSubtree = retrieveElementFromGraphByPathId(thisIdAsPath);
-        console.log("this_node: ");
-        //console.log(workarea.select("[id='"+thisId+"']")._groups[0][0]);
         var this_node = workarea.select("[id='"+thisId+"']")._groups[0][0];
-		console.log(thisJsonSubtree);
-        var parent_node = workarea;
-		var plane = new Plane(this_node,parent_node,thisJsonSubtree);
+		var plane = new Plane(this_node,thisJsonSubtree,true);
+        id2plane[thisId] = plane;
 		plane.displayPlane();
-        //this_node.remove();
     });
 
 	function retrieveElementFromGraphByPathId(path){   //path as to be list: [0,1,0]
@@ -255,37 +277,29 @@
 	}
 
 	function explode(event){
-		console.log(this.attributes.id.value+";"+this.attributes.x.value+","+this.attributes.y.value);
 		var thisId = this.attributes.id.value;
 		var thisIdAsPath = idStringToList(thisId);
 		var thisJsonSubtree = retrieveElementFromGraphByPathId(thisIdAsPath);
-		console.log(this);
-		console.log(thisJsonSubtree);
-        //
-        var parentId = this.attributes.parentId.value;
-        var parent_node = workarea.select("[id='"+parentId+"']");
-        /*console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
-        console.log(parentId);
-        console.log(parent_node);*/
-        //
-		var plane = new Plane(this,parent_node,thisJsonSubtree);
-		plane.displayPlane();
-        console.log(" vvvvvvvvvvvvv ");
-        console.log(workarea.select("[id='"+thisId+"'] [class='container_node']"));
-		workarea.select("[id='"+thisId+"'] [class='container_node']").remove();
-        
-	}
 
-	function assignCoordinates(){
-		//console.log(Math.floor(Math.random() * 1601));//from 0 to 1600
-		//console.log(Math.floor(Math.random() * 901));//from 0 to 900
-		while(true){
-			var x = Math.floor(Math.random() * 1601);
-			var y = Math.floor(Math.random() * 901);
-			var k =x+","+y;
-			return {x:x,y:y};	
-		}
+        if(!id2plane.hasOwnProperty(thisId)) {
+            var plane = new Plane(this,thisJsonSubtree,false);
+            id2plane[thisId] = plane;
+            plane.displayPlane();
+        } else {
+            var plane = id2plane[thisId];
+            plane.displayPlane();
+        }
+		this.remove();
 	}
+                
+    function implode(event){
+        var thisId = this.attributes.id.value;
+		var thisIdAsPath = idStringToList(thisId);
+		var thisJsonSubtree = retrieveElementFromGraphByPathId(thisIdAsPath);
+
+		plane = id2plane[thisId];
+        plane.hidePlane();
+    }
 
 	</script>
 </body>
