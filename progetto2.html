@@ -108,8 +108,8 @@
         
         displayChildren() {
             var thisId = this.node.attributes.id.value;
-            var x = this.node.attributes.x.value;
-            var y = this.node.attributes.y.value;
+            var x = parseInt(parseInt(this.node.attributes.x.value)+parseInt(cluster_rect_width/2));
+            var y = parseInt(parseInt(this.node.attributes.y.value)+parseInt(cluster_rect_height/2));
 
             this.elements.forEach(function(d, i) {
                 console.log(d + " " + i);
@@ -118,8 +118,8 @@
                         .append("rect")
                         .attr("id",thisId+","+i)
                         .attr("class","cluster_node")
-                        .attr("x", centerRectX(parseInt(parseInt(x) + parseInt(this.elementCoords[i][0])*distance)))
-                        .attr("y", centerRectY(parseInt(parseInt(y) + parseInt(this.elementCoords[i][1])*distance)))
+                        .attr("x", centerRectX(parseInt(parseInt(x)-parseInt(this.elementCoords.length*distance*3/4)+parseInt(this.elementCoords[i][0])*distance)))
+                        .attr("y", centerRectY(parseInt(parseInt(y)-parseInt(this.elementCoords.length*distance*3/4)+parseInt(this.elementCoords[i][1])*distance)))
                         .attr("rx", 10)
                         .attr("ry", 10)
                         .attr("width", cluster_rect_width)
@@ -135,27 +135,35 @@
                         .attr("id",thisId+","+i)
                         .attr("class","node")
                         .attr("info", d)
-                        .attr("cx", parseInt(parseInt(x)+parseInt(this.elementCoords[i][0])*distance))
-                        .attr("cy", parseInt(parseInt(y)+parseInt(this.elementCoords[i][1])*distance))
+                        .attr("cx", parseInt(parseInt(x)-parseInt(this.elementCoords.length*distance*3/4)+parseInt(this.elementCoords[i][0])*distance))
+                        .attr("cy", parseInt(parseInt(y)-parseInt(this.elementCoords.length*distance*3/4)+parseInt(this.elementCoords[i][1])*distance))
                         .attr("r", node_circle_r)
-                        .attr("fill", "green")
+                        .attr("fill", "yellow")
                         .attr("stroke-width", 2)
                         .attr("stroke", "black")
                         .on("click", info);
+                    workarea
+                        .append("text")
+                        .attr("id",thisId+","+i)
+                        .attr("x",parseInt(parseInt(x)-parseInt(this.elementCoords.length*distance*3/4)+parseInt(this.elementCoords[i][0])*distance-parseInt(node_circle_r/2)))
+                        .attr("y",parseInt(parseInt(y)-parseInt(this.elementCoords.length*distance*3/4)+parseInt(this.elementCoords[i][1])*distance+parseInt(node_circle_r/2)))
+                        .attr("font-size","30px")
+                        .attr("font-family","sans-serif")
+                        .text(d);
                 }
             }, this);
         }
         
         displayBackgroundCluster() {
             var thisId = this.node.attributes.id.value;
-            var x = this.node.attributes.x.value;
-            var y = this.node.attributes.y.value;
+            var x = parseInt(parseInt(this.node.attributes.x.value)+parseInt(cluster_rect_width/2));
+            var y = parseInt(parseInt(this.node.attributes.y.value)+parseInt(cluster_rect_height/2));
             workarea
                 .append("rect")
                 .attr("id",thisId)
                 .attr("class","cluster_bg")
-                .attr("x",x)
-                .attr("y",y)
+                .attr("x",parseInt(parseInt(x)-parseInt(this.elementCoords.length*distance/2)))
+                .attr("y",parseInt(parseInt(y)-parseInt(this.elementCoords.length*distance/2)))
                 .attr("rx", 10)
                 .attr("ry", 10)
                 .attr("width", this.elementCoords.length*distance)
