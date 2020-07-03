@@ -213,28 +213,26 @@
                 return is_of_right_class && !elem.attr("id").startsWith(thisId);
             });
             toTranslate.attr("x", function(d, i) {
-                var x = parseInt(d3.select(this).attr("x"));
+                var xStr = d3.select(this).attr("x");
+                if(xStr === null) { // if it's null it's because it's a circle!
+                    var cx = parseInt(d3.select(this).attr("cx"));
+                    if(cx > this_x) { d3.select(this).attr("cx", cx + delta); }
+                    return xStr;
+                }
+                var x = parseInt(xStr);
                 if(x > this_x) { return x + delta; }
-                else { return x; }      
-            })
-            .attr("y", function(d, i) {
+                else { return x; }  
+            }).attr("y", function(d, i) {
+                var yStr = d3.select(this).attr("y");
+                if(yStr === null) {
+                    var cy = parseInt(d3.select(this).attr("cy"));
+                    if(cy > this_y) { d3.select(this).attr("cy", cy + delta); }
+                    return yStr;
+                }
                 var y = parseInt(d3.select(this).attr("y"));
                 if(y > this_y) { return y + delta; }
-                else { return y; }   
-            });
-            
-            /*var nodesToTranslate = workarea.selectAll("*").filter(function() {
-                var elem = d3.select(this);
-                var is_of_right_class = elem.attr("class") === "node";
-                return is_of_right_class && !elem.attr("id").startsWith(thisId);
-            });
-            nodesToTranslate.each(function(d, i) {
-                var x = 0;
-                var y = 0;
-                if(x > this_x) { x = x + delta; }
-                if(y > this_y) { y = y + delta; }
-                d3.select(this).style("transform", "translate("+x+","+y+")");
-            });*/       
+                else { return y; }  
+            })     
         }
         
         updateOtherCoordsAfterImplode() {
@@ -249,20 +247,23 @@
                 return is_of_right_class && !elem.attr("id").startsWith(thisId);
             })
             toTranslate.attr("x", function(d, i) {
-                var x = parseInt(d3.select(this).attr("x"));
+                var xStr = d3.select(this).attr("x");
+                if(xStr === null) {
+                    var cx = parseInt(d3.select(this).attr("cx"));
+                    if(cx > this_x) { d3.select(this).attr("cx", cx - delta); }
+                    return xStr;
+                }
+                var x = parseInt(xStr);
                 if(x > this_x) { return x - delta; }
                 else { return x; }  
             }).attr("y", function(d, i) {
+                var yStr = d3.select(this).attr("y");
+                if(yStr === null) {
+                    var cy = parseInt(d3.select(this).attr("cy"));
+                    if(cy > this_y) { d3.select(this).attr("cy", cy - delta); }
+                    return yStr;
+                }
                 var y = parseInt(d3.select(this).attr("y"));
-                if(y > this_y) { return y - delta; }
-                else { return y; }  
-            })
-            toTranslate.selectAll("circle").attr("cx", function(d, i) {
-                var x = parseInt(d3.select(this).attr("cx"));
-                if(x > this_x) { return x - delta; }
-                else { return x; }  
-            }).attr("cy", function(d, i) {
-                var y = parseInt(d3.select(this).attr("cy"));
                 if(y > this_y) { return y - delta; }
                 else { return y; }  
             })
