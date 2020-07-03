@@ -79,6 +79,17 @@
         return y - cluster_rect_height/2;
     }
         
+    // gets font size based on text and container element size
+    function getSize(d) {
+        var bbox = this.getBBox();
+        var cbbox = this.parentNode.getBBox();
+        console.log("cbbox: " + this.parentNode + ", size: "+ cbbox.width + " " + cbbox.height);
+        console.log("bbox: " + bbox.width + " " + bbox.height);
+        var scale = Math.min(cbbox.width/bbox.width, cbbox.height/bbox.height);
+        console.log("scale: " + scale);
+        d.scale = scale;
+    }
+
     //--------------------------//
         
     var id2plane = {};
@@ -118,8 +129,8 @@
                         .append("rect")
                         .attr("id",thisId+","+i)
                         .attr("class","cluster_node")
-                        .attr("x", centerRectX(x - this.elementCoords.length * distance * 3/4 + this.elementCoords[i][0] * distance))
-                        .attr("y", centerRectY(y - this.elementCoords.length * distance * 3/4 + this.elementCoords[i][1] * distance))
+                        .attr("x", centerRectX(x + (this.elementCoords[i][0] - 1) * distance))
+                        .attr("y", centerRectY(y + (this.elementCoords[i][1] - 1) * distance))
                         .attr("rx", 10)
                         .attr("ry", 10)
                         .attr("width", cluster_rect_width)
@@ -130,26 +141,41 @@
                         .on("click", explode);
                 }
                 else {
-                    workarea
-                        .append("circle")
+                    var node = workarea
+                        .append("g")
                         .attr("id",thisId+","+i)
                         .attr("class","node")
                         .attr("info", d)
-                        .attr("cx", x - this.elementCoords.length * distance * 3/4 + this.elementCoords[i][0] * distance)
-                        .attr("cy", y - this.elementCoords.length * distance * 3/4 + this.elementCoords[i][1] * distance)
+                        .on("click", info);
+                    node
+                        .append("circle")
+                        //.attr("id",thisId+","+i)
+                        //.attr("class","node")
+                        //.attr("info", d)
+                        .attr("cx", x + (this.elementCoords[i][0] - 1) * distance)
+                        .attr("cy", y + (this.elementCoords[i][1] - 1) * distance)
                         .attr("r", node_circle_r)
                         .attr("fill", "yellow")
                         .attr("stroke-width", 2)
                         .attr("stroke", "black")
-                        .on("click", info);
-                    workarea
+                        //.on("click", info);
+                    node
                         .append("text")
-                        .attr("id",thisId+","+i)
-                        .attr("x", x - this.elementCoords.length * distance * 3/4 + this.elementCoords[i][0] * distance - node_circle_r/2)
-                        .attr("y", y - this.elementCoords.length * distance * 3/4 + this.elementCoords[i][1] * distance + node_circle_r/2)
-                        .attr("font-size","30px")
+                        //.attr("id",thisId+","+i)
+                        .attr("x", x + (this.elementCoords[i][0] - 1) * distance)
+                        .attr("y", y + (this.elementCoords[i][1] - 1) * distance)
                         .attr("font-family","sans-serif")
-                        .text(d);
+                        .style("text-anchor", "middle")
+                        .text(d)
+                        .style("font-size", function(d) {
+                            var d2csf = 1/Math.sqrt(2);  // d2csf = diameter_2_circumscribed_square_factor
+                            var v1 = 2*node_circle_r * d2csf;
+                            var v2 = (v1 / this.getComputedTextLength() * 24) * d2csf;
+                            console.log("v1=" + v1 + "   v2=" + v2);
+                            console.log("min=" + Math.min(v1, v2));
+                            return Math.min(v1, v2) + "px";
+                        })
+                        .attr("dy", ".35em");
                 }
             }, this);
         }
@@ -162,8 +188,8 @@
                 .append("rect")
                 .attr("id",thisId)
                 .attr("class","cluster_bg")
-                .attr("x", x - this.elementCoords.length * distance/2)
-                .attr("y", y - this.elementCoords.length * distance/2)
+                .attr("x", x - distance/2)
+                .attr("y", y - distance/2)
                 .attr("rx", 10)
                 .attr("ry", 10)
                 .attr("width", this.elementCoords.length * distance)
