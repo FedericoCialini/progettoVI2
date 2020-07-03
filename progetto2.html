@@ -92,6 +92,7 @@
             this.elements = element_list;
             this.elementCoords = this.generateElementsCoords();
             this.is_root_node = is_root_node;
+            this.isDisplayed = true;
         }
         
         generateElementsCoords() {
@@ -201,6 +202,16 @@
                 .attr("x", ty);
         }
         
+        getParentClustersIds(thisId) {
+            var clusterIds = [];
+            while(thisId.includes(",")) {
+                var i = thisId.lastIndexOf(",");
+                thisId = thisId.substring(0, i);
+                if(thisId != "0") { clusterIds.push(thisId); }
+            }
+            return clusterIds;
+        }
+        
         updateOtherCoordsAfterExplode() {
             var thisId = this.node.attributes.id.value;
             var this_x = parseInt(this.node.attributes.x.value);
@@ -232,7 +243,28 @@
                 var y = parseInt(d3.select(this).attr("y"));
                 if(y > this_y) { return y + delta; }
                 else { return y; }  
-            })     
+            })
+            
+            // I also need to enlarge the parent cluster(s) 
+            var parentIds = this.getParentClustersIds(thisId);
+            parentIds.forEach(function(id, i) {
+                var parent = d3.select("*[id='"+id+"']");
+                parent.attr("width", parseInt(parent.attr("width"))+delta);
+                parent.attr("height", parseInt(parent.attr("height"))+delta);
+            });
+            
+        }
+        
+        getDisplayedChildrenClustersAddedSize(thisId) {
+            var totalAddedSize = 0;
+            for(var id in id2plane) {
+                var child =id2plane[id];
+                if(id != thisId && id.startsWith(thisId) && child.isDisplayed) {
+                    var addedSize = (child.elementCoords.length-1) * distance;
+                    totalAddedSize += addedSize;
+                }
+            }
+            return totalAddedSize;
         }
         
         updateOtherCoordsAfterImplode() {
@@ -240,6 +272,7 @@
             var this_x = parseInt(this.node.attributes.x.value);
             var this_y = parseInt(this.node.attributes.y.value);
             var delta = (this.elementCoords.length-1) * distance;
+            delta += this.getDisplayedChildrenClustersAddedSize(thisId);
             
             var toTranslate = workarea.selectAll("*").filter(function() {
                 var elem = d3.select(this);
@@ -267,6 +300,14 @@
                 if(y > this_y) { return y - delta; }
                 else { return y; }  
             })
+            
+            // I also need to reduce the parent cluster(s) size
+            var parentIds = this.getParentClustersIds(thisId);
+            parentIds.forEach(function(id, i) {
+                var parent = d3.select("rect[id='"+id+"']");
+                parent.attr("width", parseInt(parent.attr("width"))-delta);
+                parent.attr("height", parseInt(parent.attr("height"))-delta);
+            });
         }
         
         displayPlane() {
@@ -282,6 +323,7 @@
             if(!this.is_root_node) {
                 this.updateOtherCoordsAfterExplode();
             }
+            this.isDisplayed = true;
             this.panToExplodedCluster();
         }
         
@@ -306,6 +348,7 @@
                 .on("click", explode);
             
             this.updateOtherCoordsAfterImplode();
+            this.isDisplayed = false;
         }
         
     }
