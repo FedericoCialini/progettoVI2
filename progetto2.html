@@ -78,17 +78,6 @@
     function centerRectY(y) {
         return y - cluster_rect_height/2;
     }
-        
-    // gets font size based on text and container element size
-    function getSize(d) {
-        var bbox = this.getBBox();
-        var cbbox = this.parentNode.getBBox();
-        console.log("cbbox: " + this.parentNode + ", size: "+ cbbox.width + " " + cbbox.height);
-        console.log("bbox: " + bbox.width + " " + bbox.height);
-        var scale = Math.min(cbbox.width/bbox.width, cbbox.height/bbox.height);
-        console.log("scale: " + scale);
-        d.scale = scale;
-    }
 
     //--------------------------//
         
@@ -123,7 +112,6 @@
             var y = parseInt(this.node.attributes.y.value) + cluster_rect_height/2;
 
             this.elements.forEach(function(d, i) {
-                console.log(d + " " + i);
                 if(d[0]!=null){
                     workarea
                         .append("rect")
@@ -144,13 +132,13 @@
                     var node = workarea
                         .append("g")
                         .attr("id",thisId+","+i)
-                        .attr("class","node")
+                        //.attr("class","node")
                         .attr("info", d)
                         .on("click", info);
                     node
                         .append("circle")
-                        //.attr("id",thisId+","+i)
-                        //.attr("class","node")
+                        .attr("id",thisId+","+i)
+                        .attr("class","node")
                         //.attr("info", d)
                         .attr("cx", x + (this.elementCoords[i][0] - 1) * distance)
                         .attr("cy", y + (this.elementCoords[i][1] - 1) * distance)
@@ -161,7 +149,8 @@
                         //.on("click", info);
                     node
                         .append("text")
-                        //.attr("id",thisId+","+i)
+                        .attr("id",thisId+","+i)
+                        .attr("class","node")
                         .attr("x", x + (this.elementCoords[i][0] - 1) * distance)
                         .attr("y", y + (this.elementCoords[i][1] - 1) * distance)
                         .attr("font-family","sans-serif")
@@ -171,8 +160,6 @@
                             var d2csf = 1/Math.sqrt(2);  // d2csf = diameter_2_circumscribed_square_factor
                             var v1 = 2*node_circle_r * d2csf;
                             var v2 = (v1 / this.getComputedTextLength() * 24) * d2csf;
-                            console.log("v1=" + v1 + "   v2=" + v2);
-                            console.log("min=" + Math.min(v1, v2));
                             return Math.min(v1, v2) + "px";
                         })
                         .attr("dy", ".35em");
@@ -201,6 +188,86 @@
                 .on("dblclick", implode);
         }
         
+        // this is still in WIP (as in it's not working yet...)
+        panToExplodedCluster() {
+            var x = parseInt(this.node.attributes.x.value);
+            var y = parseInt(this.node.attributes.y.value);
+            
+            var tx = x + this.elementCoords.length * distance / 2;
+            var ty = y + this.elementCoords.length * distance / 2;
+
+            workarea.transition().duration(1000)
+                .attr("x", tx)
+                .attr("x", ty);
+        }
+        
+        updateOtherCoordsAfterExplode() {
+            var thisId = this.node.attributes.id.value;
+            var this_x = parseInt(this.node.attributes.x.value);
+            var this_y = parseInt(this.node.attributes.y.value);
+            var delta = (this.elementCoords.length-1) * distance;
+            
+            var toTranslate = workarea.selectAll("*").filter(function() {
+                var elem = d3.select(this);
+                var is_of_right_class = elem.attr("class") === "node" || elem.attr("class") === "cluster_node" || elem.attr("class") === "cluster_bg";
+                return is_of_right_class && !elem.attr("id").startsWith(thisId);
+            });
+            toTranslate.attr("x", function(d, i) {
+                var x = parseInt(d3.select(this).attr("x"));
+                if(x > this_x) { return x + delta; }
+                else { return x; }      
+            })
+            .attr("y", function(d, i) {
+                var y = parseInt(d3.select(this).attr("y"));
+                if(y > this_y) { return y + delta; }
+                else { return y; }   
+            });
+            
+            /*var nodesToTranslate = workarea.selectAll("*").filter(function() {
+                var elem = d3.select(this);
+                var is_of_right_class = elem.attr("class") === "node";
+                return is_of_right_class && !elem.attr("id").startsWith(thisId);
+            });
+            nodesToTranslate.each(function(d, i) {
+                var x = 0;
+                var y = 0;
+                if(x > this_x) { x = x + delta; }
+                if(y > this_y) { y = y + delta; }
+                d3.select(this).style("transform", "translate("+x+","+y+")");
+            });*/       
+        }
+        
+        updateOtherCoordsAfterImplode() {
+            var thisId = this.node.attributes.id.value;
+            var this_x = parseInt(this.node.attributes.x.value);
+            var this_y = parseInt(this.node.attributes.y.value);
+            var delta = (this.elementCoords.length-1) * distance;
+            
+            var toTranslate = workarea.selectAll("*").filter(function() {
+                var elem = d3.select(this);
+                var is_of_right_class = elem.attr("class") === "node" || elem.attr("class") === "cluster_node" || elem.attr("class") === "cluster_bg";
+                return is_of_right_class && !elem.attr("id").startsWith(thisId);
+            })
+            toTranslate.attr("x", function(d, i) {
+                var x = parseInt(d3.select(this).attr("x"));
+                if(x > this_x) { return x - delta; }
+                else { return x; }  
+            }).attr("y", function(d, i) {
+                var y = parseInt(d3.select(this).attr("y"));
+                if(y > this_y) { return y - delta; }
+                else { return y; }  
+            })
+            toTranslate.selectAll("circle").attr("cx", function(d, i) {
+                var x = parseInt(d3.select(this).attr("cx"));
+                if(x > this_x) { return x - delta; }
+                else { return x; }  
+            }).attr("cy", function(d, i) {
+                var y = parseInt(d3.select(this).attr("cy"));
+                if(y > this_y) { return y - delta; }
+                else { return y; }  
+            })
+        }
+        
         displayPlane() {
             // if this is the root cluster node
             if(this.is_root_node) {
@@ -211,6 +278,10 @@
                 this.displayBackgroundCluster();
                 this.displayChildren();
             }
+            if(!this.is_root_node) {
+                this.updateOtherCoordsAfterExplode();
+            }
+            this.panToExplodedCluster();
         }
         
         hidePlane() {
@@ -232,6 +303,8 @@
                 .attr("stroke-width", 2)
                 .attr("stroke", "black")
                 .on("click", explode);
+            
+            this.updateOtherCoordsAfterImplode();
         }
         
     }
@@ -241,9 +314,7 @@
 	
 	var graph = [];
 	d3.json("clusters.json").then(function(data) {
-		console.log(data);
 		graph[0] = data;
-		console.log(graph);
 		workarea.selectAll(".rect")
 			.data(data)
 			.enter()
