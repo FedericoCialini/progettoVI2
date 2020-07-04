@@ -262,6 +262,7 @@
                 if(id != thisId && id.startsWith(thisId) && child.isDisplayed) {
                     var addedSize = (child.elementCoords.length-1) * distance;
                     totalAddedSize += addedSize;
+                    child.isDisplayed = false;  // this child will be closed!
                 }
             }
             return totalAddedSize;
