@@ -13,7 +13,7 @@
 	const workarea_center_x = workarea_width/2;
 	const workarea_center_y = workarea_height/2;
         
-	const distance = 100;
+	const distance = 80;
     const cluster_rect_width = 60;
     const cluster_rect_height = 60;
     const node_circle_r = 20;  // -> diameter is 2*r
@@ -113,10 +113,11 @@
             var y = parseInt(this.node.attributes.y.value) + cluster_rect_height/2;
 
             this.elements.forEach(function(d, i) {
+                var childId = thisId+","+i;
                 if(d[0]!=null){
-                    workarea
+                    var child_node = workarea
                         .append("rect")
-                        .attr("id",thisId+","+i)
+                        .attr("id",childId)
                         .attr("class","cluster_node")
                         .attr("x", centerRectX(x + (this.elementCoords[i][0] - 1) * distance))
                         .attr("y", centerRectY(y + (this.elementCoords[i][1] - 1) * distance))
@@ -127,18 +128,23 @@
                         .attr("fill", "red")
                         .attr("stroke-width", 2)
                         .attr("stroke", "black")
-                        .on("click", explode);
+                        .on("click", explode)
+                        ._groups[0][0];
+                    // I need to update the child cluster's plane node if it already exists
+                    if(id2plane.hasOwnProperty(childId)) {
+                        id2plane[childId].node = child_node;
+                    }
                 }
                 else {
                     var node = workarea
                         .append("g")
-                        .attr("id",thisId+","+i)
+                        .attr("id",childId)
                         //.attr("class","node")
                         .attr("info", d)
                         .on("click", info);
                     node
                         .append("circle")
-                        .attr("id",thisId+","+i)
+                        .attr("id",childId)
                         .attr("class","node")
                         //.attr("info", d)
                         .attr("cx", x + (this.elementCoords[i][0] - 1) * distance)
@@ -150,7 +156,7 @@
                         //.on("click", info);
                     node
                         .append("text")
-                        .attr("id",thisId+","+i)
+                        .attr("id",childId)
                         .attr("class","node")
                         .attr("x", x + (this.elementCoords[i][0] - 1) * distance)
                         .attr("y", y + (this.elementCoords[i][1] - 1) * distance)
@@ -248,7 +254,7 @@
             // I also need to enlarge the parent cluster(s) 
             var parentIds = this.getParentClustersIds(thisId);
             parentIds.forEach(function(id, i) {
-                var parent = d3.select("*[id='"+id+"']");
+                var parent = d3.select("[id='"+id+"']");
                 parent.attr("width", parseInt(parent.attr("width"))+delta);
                 parent.attr("height", parseInt(parent.attr("height"))+delta);
             });
@@ -305,7 +311,7 @@
             // I also need to reduce the parent cluster(s) size
             var parentIds = this.getParentClustersIds(thisId);
             parentIds.forEach(function(id, i) {
-                var parent = d3.select("rect[id='"+id+"']");
+                var parent = d3.select("[id='"+id+"']");
                 parent.attr("width", parseInt(parent.attr("width"))-delta);
                 parent.attr("height", parseInt(parent.attr("height"))-delta);
             });
@@ -325,16 +331,18 @@
                 this.updateOtherCoordsAfterExplode();
             }
             this.isDisplayed = true;
-            this.panToExplodedCluster();
+            //this.panToExplodedCluster();
         }
         
         hidePlane() {
             var thisId = this.node.attributes.id.value;
+            var x = parseInt(workarea.select("[id='"+thisId+"']").attr("x")) + distance/2 - cluster_rect_width/2;
+            var y = parseInt(workarea.select("[id='"+thisId+"']").attr("y")) + distance/2 - cluster_rect_height/2;
             workarea.selectAll("[id^='"+thisId+"']").remove();
             
-            var x = parseInt(this.node.attributes.x.value);
-            var y = parseInt(this.node.attributes.y.value);
-            workarea.append("rect")
+            //var x = parseInt(this.node.attributes.x.value);
+            //var y = parseInt(this.node.attributes.y.value);
+            this.node = workarea.append("rect")
                 .attr("id",thisId)
                 .attr("class","cluster_node")
                 .attr("x", x)
@@ -346,7 +354,8 @@
                 .attr("fill", "red")
                 .attr("stroke-width", 2)
                 .attr("stroke", "black")
-                .on("click", explode);
+                .on("click", explode)
+                ._groups[0][0];
             
             this.updateOtherCoordsAfterImplode();
             this.isDisplayed = false;
@@ -411,7 +420,7 @@
 	}
 
 	function info(){
-		console.log(this.attributes.id.value+";"+this.attributes.x.value+","+this.attributes.y.value+";"+this.attributes.info.value);
+		console.log(this.attributes.id.value+";"/*+this.attributes.x.value+","+this.attributes.y.value+";"*/+this.attributes.info.value);
 	}
 
 	function explode(event){
