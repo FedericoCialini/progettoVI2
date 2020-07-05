@@ -7,7 +7,11 @@
 </head>
 <body>
 	<script type="text/javascript">
+        
+        
+    //---------------- constants ----------------//
 
+        
 	const workarea_width = 1600;
 	const workarea_height = 900;
 	const workarea_center_x = workarea_width/2;
@@ -19,15 +23,23 @@
     const node_circle_r = 20;  // -> diameter is 2*r
     const cluster_background_opacity = 0.1
     
-    //--------------------------//
+    const animations_duration = 300 // in milliseconds
+    
+    
+    
+    //---------------- workarea ----------------//
+    
+    var currentZoomScale = 1;
+    var zoom = d3.zoom().on("zoom", function() {
+            currentZoomScale = d3.event.transform.k;
+            workarea.attr("transform", d3.event.transform);
+        });
     
     var container = d3.select("body")
 		.append("svg")
 		.attr("width", workarea_width).attr("height", workarea_height)
         .attr("style", "outline: medium solid black;")
-        .call(d3.zoom().on("zoom", function () {
-            workarea.attr("transform", d3.event.transform);
-        }))
+        .call(zoom)
         .on("dblclick.zoom", null);
         
 	var workarea = container.append("g");
@@ -40,7 +52,10 @@
         
     window.addEventListener("resize", resize_container);
         
-    //--------------------------//
+        
+        
+    //---------------- support functions ----------------//
+        
         
     function getRandomIntInRange(min, max) {
         min = Math.ceil(min);
@@ -79,7 +94,10 @@
         return y - cluster_rect_height/2;
     }
 
-    //--------------------------//
+        
+        
+    //---------------- plane ----------------//
+        
         
     var id2plane = {};
     
@@ -178,7 +196,7 @@
             var thisId = this.node.attributes.id.value;
             var x = parseInt(this.node.attributes.x.value) + cluster_rect_width/2;
             var y = parseInt(this.node.attributes.y.value) + cluster_rect_height/2;
-            workarea
+            return workarea
                 .append("rect")
                 .attr("id",thisId)
                 .attr("class","cluster_bg")
@@ -191,12 +209,13 @@
                 .attr("fill", "blue")
                 .attr("fill-opacity", cluster_background_opacity)
                 .attr("stroke-width", 2)
-                .attr("stroke", "black")
+                .attr("stroke", "blue")
+                .attr("stroke-opacity", cluster_background_opacity * 2)
                 .on("dblclick", implode);
         }
         
         // this is still in WIP (as in it's not working yet...)
-        panToExplodedCluster() {
+        /*panToExplodedCluster() {
             var x = parseInt(this.node.attributes.x.value);
             var y = parseInt(this.node.attributes.y.value);
             
@@ -206,7 +225,7 @@
             workarea.transition().duration(1000)
                 .attr("x", tx)
                 .attr("x", ty);
-        }
+        }*/
         
         getParentClustersIds(thisId) {
             var clusterIds = [];
@@ -324,14 +343,14 @@
                 
             // if this is NOT the root cluster node
             } else {
-                this.displayBackgroundCluster();
+                var bg = this.displayBackgroundCluster();
                 this.displayChildren();
             }
             if(!this.is_root_node) {
                 this.updateOtherCoordsAfterExplode();
+                panToElement(bg);
             }
             this.isDisplayed = true;
-            //this.panToExplodedCluster();
         }
         
         hidePlane() {
@@ -340,9 +359,7 @@
             var y = parseInt(workarea.select("[id='"+thisId+"']").attr("y")) + distance/2 - cluster_rect_height/2;
             workarea.selectAll("[id^='"+thisId+"']").remove();
             
-            //var x = parseInt(this.node.attributes.x.value);
-            //var y = parseInt(this.node.attributes.y.value);
-            this.node = workarea.append("rect")
+            var new_node = workarea.append("rect")
                 .attr("id",thisId)
                 .attr("class","cluster_node")
                 .attr("x", x)
@@ -354,16 +371,20 @@
                 .attr("fill", "red")
                 .attr("stroke-width", 2)
                 .attr("stroke", "black")
-                .on("click", explode)
-                ._groups[0][0];
+                .on("click", explode);
+            
+            this.node = new_node._groups[0][0];
             
             this.updateOtherCoordsAfterImplode();
+            panToElement(new_node);
             this.isDisplayed = false;
         }
         
     }
         
-    //--------------------------//
+        
+        
+    //---------------- main ----------------//
 
 	
 	var graph = [];
@@ -446,6 +467,28 @@
 
 		plane = id2plane[thisId];
         plane.hidePlane();
+    }
+        
+        
+        
+    //---------------- animations ----------------//
+        
+        
+    function panToElement(elem) {
+        var x = parseInt(elem.attr("x"));
+        var y = parseInt(elem.attr("y"));
+        var width = parseInt(elem.attr("width"));
+        var height = parseInt(elem.attr("height"));
+        
+        var tx = (-width/2 - x) * currentZoomScale + container.attr("width")/2;
+        var ty = (-height/2 - y) * currentZoomScale + container.attr("height")/2;
+                          
+        workarea.transition()
+            .duration(animations_duration)
+            .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
+            .on("end", function() {
+                container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+            });
     }
 
 	</script>
