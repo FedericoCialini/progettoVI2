@@ -216,19 +216,6 @@
                 .on("dblclick", implode);
         }
         
-        // this is still in WIP (as in it's not working yet...)
-        /*panToExplodedCluster() {
-            var x = parseInt(this.node.attributes.x.value);
-            var y = parseInt(this.node.attributes.y.value);
-            
-            var tx = x + this.elementCoords.length * distance / 2;
-            var ty = y + this.elementCoords.length * distance / 2;
-
-            workarea.transition().duration(1000)
-                .attr("x", tx)
-                .attr("x", ty);
-        }*/
-        
         getParentClustersIds(thisId) {
             var clusterIds = [];
             while(thisId.includes(",")) {
@@ -390,8 +377,12 @@
 
 	
 	var graph = [];
+    var cluster2nodeNumber = {}
+    var nodeNumber2element = {}
+        
 	d3.json("clusters.json").then(function(data) {
 		graph[0] = data;
+        buildCluster2nodeNumber();
 		workarea.selectAll(".rect")
 			.data(data)
 			.enter()
@@ -408,12 +399,77 @@
         id2plane[thisId] = plane;
 		plane.displayPlane();
     });
+        
+    function clusterIdsDfs(idStr, clusterIds) {
+        children = retrieveElementFromGraphByPathId(idStringToList(idStr));
+        children.forEach(function(child, i) {
+            if(child[0]!=null) {
+                idStr = idStr+","+i;
+                clusterIds.push(idStr);
+                console.log(idStr);
+                console.log(clusterIds);
+                clusterIdsDfs(idStr, clusterIds);
+            }
+        });
+    }
+        
+    function findAllClusterIds() {
+        var clusterIds = [];
+        clusterIds.push("0");
+        children = retrieveElementFromGraphByPathId([0]);
+        children.forEach(function(child, i) {
+            if(child[0]!=null) {
+                var idStr = "0,"+i;
+                clusterIds.push(idStr);
+                console.log(idStr);
+                console.log(clusterIds);
+                clusterIdsDfs(idStr, clusterIds);
+            }
+        });
+        return clusterIds;
+    }
+        
+    function nodeNumbersDfs(idStr, nodeNumbers) {
+        children = retrieveElementFromGraphByPathId(idStringToList(idStr));
+        children.forEach(function(child, i) {
+            if(child[0]!=null) {
+                var idStr = idStr+","+i;
+                nodeNumbersDfs(idStr, nodeNumbers);
+            } else {
+                nodeNumbers.push(child);
+            }
+        });
+    }
+        
+    function findAllNodeNumbersInside(clusterId) {
+        var nodeNumbers = [];
+        children = retrieveElementFromGraphByPathId(idStringToList(clusterId));
+        children.forEach(function(child, i) {
+            if(child[0]!=null) {
+                var idStr = clusterId+","+i;
+                nodeNumbersDfs(idStr, nodeNumbers);
+            } else {
+                nodeNumbers.push(child);
+            }
+        });
+        return clusterIds;
+    }
+        
+    function buildCluster2nodeNumber() {
+        var clusterIds = findAllClusterIds();
+        clusterIds.forEach(function (clusterId,i) {
+            var nodeNumbers = findAllNodeNumbersInside(clusterId);
+            cluster2nodeNumber[clusterId] = nodeNumbers;
+        });
+        console.log(cluster2nodeNumber);
+    }
 
 	function retrieveElementFromGraphByPathId(path){   //path as to be list: [0,1,0]
 		var i = 0;
 		var g = graph[0];
 		while (path[i]!=null) {
 			if(path.length==i+1){
+                console.log(g[path[i]]);
 				return g[path[i]];
 			}
 			else {
