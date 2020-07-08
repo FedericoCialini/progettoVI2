@@ -165,11 +165,11 @@
                     node
                         .append("circle")
                         .attr("id",childId)
-                        .attr("class","node")
-                        //.attr("info", d)
+                        .attr("class","circle")
                         .attr("cx", x + (this.elementCoords[i][0] - 1) * distance)
                         .attr("cy", y + (this.elementCoords[i][1] - 1) * distance)
                         .attr("r", node_circle_r)
+                        .attr("info", d)
                         .attr("fill", "yellow")
                         .attr("stroke-width", 2)
                         .attr("stroke", "black")
@@ -234,7 +234,7 @@
             
             var toTranslate = workarea.selectAll("*").filter(function() {
                 var elem = d3.select(this);
-                var is_of_right_class = elem.attr("class") === "node" || elem.attr("class") === "cluster_node" || elem.attr("class") === "cluster_bg";
+                var is_of_right_class = elem.attr("class") === "node" || elem.attr("class") === "cluster_node" || elem.attr("class") === "circle" || elem.attr("class") === "cluster_bg";
                 return is_of_right_class && !elem.attr("id").startsWith(thisId);
             });
             toTranslate.attr("x", function(d, i) {
@@ -291,7 +291,7 @@
             
             var toTranslate = workarea.selectAll("*").filter(function() {
                 var elem = d3.select(this);
-                var is_of_right_class = elem.attr("class") === "node" || elem.attr("class") === "cluster_node" || elem.attr("class") === "cluster_bg";
+                var is_of_right_class = elem.attr("class") === "node" || elem.attr("class") === "cluster_node" || elem.attr("class") === "circle" || elem.attr("class") === "cluster_bg";
                 return is_of_right_class && !elem.attr("id").startsWith(thisId);
             })
             toTranslate.attr("x", function(d, i) {
@@ -376,16 +376,13 @@
     //---------------- main ----------------//
 
 	
-	var graph = [];
-    var cluster2nodeNumbers = {}
-    var nodeNumber2elementId = {}
-    
+    var graph = [];
+    var numbers = [];
+    var edges = new Map();
+    var cluster2nodeNumbers = {};
+    var nodeNumber2elementId = {};
+
     /*
-    d3.queue()
-        .defer(d3.json, "clusters.json")
-        .defer(d3.json, "edges.json")
-        .await(main)
-    */
 	d3.json("clusters.json").then(function(data) {
 		// main(err, ...data) {
         //      data[0] = clusters, data[1] = edges
@@ -409,7 +406,140 @@
 		plane.displayPlane();
         // }
     });
-        
+
+    */
+
+    /*
+    d3.queue()
+        .defer(d3.json, "clusters.json")
+        .defer(d3.json, "edges.json")
+        .await(main);
+    */
+
+    d3.selection.prototype.moveToFront = function() {  
+      return this.each(function(){
+        this.parentNode.appendChild(this);
+      });
+    };
+    d3.selection.prototype.moveToBack = function() {  
+        return this.each(function() { 
+            var firstChild = this.parentNode.firstChild; 
+            if (firstChild) { 
+                this.parentNode.insertBefore(this, firstChild); 
+            } 
+        });
+    };
+
+    var files = ["clusters.json", "edges.json"];
+    var promises = [];
+
+    files.forEach(function(url) {
+        promises.push(d3.json(url))
+    });
+
+    Promise.all(promises).then(function(values) {
+        graph[0] = values[0];
+        edges = values[1];
+        buildCluster2nodeNumbers();
+        buildNodeNumber2element();
+        workarea.selectAll(".rect")
+            .data(values[0])
+            .enter()
+            .append("g")
+            .attr("id",0)
+            .attr("class","plane")
+            .attr("x", workarea_center_x)
+            .attr("y", workarea_center_y)
+        var thisId = "0";
+        var thisIdAsPath = [0];
+        var thisJsonSubtree = retrieveElementFromGraphByPathId(thisIdAsPath);
+        var this_node = workarea.select("[id='"+thisId+"']")._groups[0][0];
+        var plane = new Plane(this_node,thisJsonSubtree,true);
+        id2plane[thisId] = plane;
+        plane.displayPlane();
+        numbers = buildNumbersList();
+        drawAllEdges();
+    });
+
+    //--------------------------------------//
+
+    function drawEdgeByCoordinates(x1,y1,x2,y2){
+        workarea
+            .append("line")
+            .attr("x1",x1)
+            .attr("y1",y1)
+            .attr("x2",x1)
+            .attr("y2",y2)
+            .attr("stroke","black")
+            .attr("stroke-width","2");
+        workarea
+            .append("line")
+            .attr("x1",x1)
+            .attr("y1",y2)
+            .attr("x2",x2)
+            .attr("y2",y2)
+            .attr("stroke","black")
+            .attr("stroke-width","2");
+        workarea.selectAll("line").moveToBack();    
+    }
+
+    function drawEdgeByNodes(startId,endId){
+        var x1,y1,x2,y2;
+        if(cluster2nodeNumbers.hasOwnProperty(startId)){
+            var startNode = workarea.select("[id='"+startId+"']")._groups[0][0];
+            x1 = parseInt(startNode.attributes.x.value) + cluster_rect_width/2;
+            y1 = parseInt(startNode.attributes.y.value) + cluster_rect_height/2;
+        }else{
+            var startNode = workarea.select("[id='"+startId+"']").select(".circle")._groups[0][0];
+            x1 = parseInt(startNode.attributes.cx.value);
+            y1 = parseInt(startNode.attributes.cy.value);
+        }
+        if(cluster2nodeNumbers.hasOwnProperty(endId)){
+            var endNode = workarea.select("[id='"+endId+"']")._groups[0][0];
+            x2 = parseInt(endNode.attributes.x.value) + cluster_rect_width/2;
+            y2 = parseInt(endNode.attributes.y.value) + cluster_rect_height/2;
+        }else{
+            var endNode = workarea.select("[id='"+endId+"']").select(".circle")._groups[0][0];
+            x2 = parseInt(endNode.attributes.cx.value);
+            y2 = parseInt(endNode.attributes.cy.value);
+        }
+        drawEdgeByCoordinates(x1,y1,x2,y2);
+    }
+
+    function drawAllEdges(){
+        numbers.forEach(function(nodeNumber, i){
+            if(edges[nodeNumber]!=null){
+                edges[nodeNumber].forEach(function(edgeEnd, i) {
+                    console.log("start number: "+nodeNumber+" to end number: "+edgeEnd);
+                    var startId = nodeNumber2elementId[nodeNumber];
+                    var endId = nodeNumber2elementId[edgeEnd];
+                    console.log("start node: "+startId+" to end node: "+endId);
+                    drawEdgeByNodes(startId,endId);
+                });
+            }
+        });
+    }
+
+    function buildNumbersList(){
+        var clusterElements = d3.selectAll(".cluster_node")._groups[0];
+        var clusterIds = [];
+        var numbers = [];
+        clusterElements.forEach(function(cluster, i) {
+            clusterIds.push(cluster.attributes.id.value);
+        });
+        clusterIds.forEach(function(clusterid, i) {
+            cluster2nodeNumbers[clusterid].forEach(function(nodeNumber, i) {
+                numbers.push(nodeNumber);
+            });
+        });
+        var circleElements = d3.selectAll(".circle")._groups[0];
+        circleElements.forEach(function(circle, i) {
+            numbers.push(parseInt(circle.attributes.info.value));
+        });
+        return numbers;
+    }
+
+
     //--------------------------------------//
         
     function clusterIdsDfs(idStrOld, clusterIds) {
@@ -469,7 +599,6 @@
             var nodeNumbers = findAllNodeNumbersInside(clusterId);
             cluster2nodeNumbers[clusterId] = nodeNumbers;
         });
-        console.log(cluster2nodeNumbers);
     }
         
     //--------------------------------------//
@@ -513,7 +642,6 @@
                 nodeNumber2elementId[nodeNumber] = idStr;
             });
         });
-        console.log(nodeNumber2elementId);
     }    
     
     //--------------------------------------//
@@ -570,6 +698,8 @@
         }
 		this.remove();
         updateNN2EafterExplode(thisId);
+        workarea.selectAll("line").remove();
+        drawAllEdges();
 	}
                 
     function implode(event){
@@ -578,6 +708,8 @@
 		plane = id2plane[thisId];
         plane.hidePlane();
         updateNN2EafterImplode(thisId);
+        workarea.selectAll("line").remove();
+        drawAllEdges();
     }
         
         
