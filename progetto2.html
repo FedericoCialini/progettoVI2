@@ -377,12 +377,13 @@
 
 	
 	var graph = [];
-    var cluster2nodeNumber = {}
-    var nodeNumber2element = {}
+    var cluster2nodeNumbers = {}
+    var nodeNumber2elementId = {}
         
 	d3.json("clusters.json").then(function(data) {
 		graph[0] = data;
-        buildCluster2nodeNumber();
+        buildCluster2nodeNumbers();
+        buildNodeNumber2element();
 		workarea.selectAll(".rect")
 			.data(data)
 			.enter()
@@ -400,14 +401,14 @@
 		plane.displayPlane();
     });
         
+    //--------------------------------------//
+        
     function clusterIdsDfs(idStrOld, clusterIds) {
         var children = retrieveElementFromGraphByPathId(idStringToList(idStrOld));
         children.forEach(function(child, i) {
             if(child[0]!=null) {
                 var idStr = idStrOld+","+i;
                 clusterIds.push(idStr);
-                console.log(idStr);
-                console.log(clusterIds);
                 clusterIdsDfs(idStr, clusterIds);
             }
         });
@@ -421,8 +422,6 @@
             if(child[0]!=null) {
                 var idStr = "0,"+i;
                 clusterIds.push(idStr);
-                console.log(idStr);
-                console.log(clusterIds);
                 clusterIdsDfs(idStr, clusterIds);
             }
         });
@@ -455,14 +454,60 @@
         return nodeNumbers;
     }
         
-    function buildCluster2nodeNumber() {
+    function buildCluster2nodeNumbers() {
         var clusterIds = findAllClusterIds();
         clusterIds.forEach(function (clusterId,i) {
             var nodeNumbers = findAllNodeNumbersInside(clusterId);
-            cluster2nodeNumber[clusterId] = nodeNumbers;
+            cluster2nodeNumbers[clusterId] = nodeNumbers;
         });
-        console.log(cluster2nodeNumber);
+        console.log(cluster2nodeNumbers);
     }
+        
+    //--------------------------------------//
+        
+    function updateNN2EafterExplode(explodedClusterId) {
+         var children = retrieveElementFromGraphByPathId(idStringToList(explodedClusterId));
+         children.forEach(function(child, i) {
+            var idStr = explodedClusterId+","+i;
+            var nodeNumbers = [];
+            if(cluster2nodeNumbers.hasOwnProperty(idStr)) {
+                nodeNumbers = cluster2nodeNumbers[idStr];
+            } else {
+                nodeNumbers.push(retrieveElementFromGraphByPathId(idStringToList(idStr)));
+            }
+            nodeNumbers.forEach(function(nodeNumber, i) {
+                nodeNumber2elementId[nodeNumber] = idStr;
+            });
+         });
+        console.log(nodeNumber2elementId);
+    }
+        
+    function updateNN2EafterImplode(implodedClusterId) {
+        var nodeNumbers = cluster2nodeNumbers[implodedClusterId];
+        nodeNumbers.forEach(function(nodeNumber, i) {
+            nodeNumber2elementId[nodeNumber] = implodedClusterId;
+        });
+        console.log(nodeNumber2elementId);
+    }
+        
+    function buildNodeNumber2element() {
+        var children = retrieveElementFromGraphByPathId([0]);
+        children.forEach(function(child, i) {
+            var idStr = "0,"+i;
+            var nodeNumbers = [];
+            if(cluster2nodeNumbers.hasOwnProperty(idStr)) {
+                nodeNumbers = cluster2nodeNumbers[idStr];
+            } else {
+                nodeNumbers.push(retrieveElementFromGraphByPathId(idStringToList(idStr)));
+            }
+            nodeNumbers.forEach(function(nodeNumber, i) {
+                nodeNumber2elementId[nodeNumber] = idStr;
+            });
+        });
+        console.log(nodeNumber2elementId);
+    }    
+    
+    //--------------------------------------//
 
 	function retrieveElementFromGraphByPathId(path){   //path as to be list: [0,1,0]
 		var i = 0;
@@ -515,15 +560,15 @@
             plane.displayPlane();
         }
 		this.remove();
+        updateNN2EafterExplode(thisId);
 	}
                 
     function implode(event){
         var thisId = this.attributes.id.value;
-		var thisIdAsPath = idStringToList(thisId);
-		var thisJsonSubtree = retrieveElementFromGraphByPathId(thisIdAsPath);
 
 		plane = id2plane[thisId];
         plane.hidePlane();
+        updateNN2EafterImplode(thisId);
     }
         
         
