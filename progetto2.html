@@ -379,9 +379,17 @@
 	var graph = [];
     var cluster2nodeNumbers = {}
     var nodeNumber2elementId = {}
-        
+    
+    /*
+    d3.queue()
+        .defer(d3.json, "clusters.json")
+        .defer(d3.json, "edges.json")
+        .await(main)
+    */
 	d3.json("clusters.json").then(function(data) {
-		graph[0] = data;
+		// main(err, ...data) {
+        //      data[0] = clusters, data[1] = edges
+        graph[0] = data;
         buildCluster2nodeNumbers();
         buildNodeNumber2element();
 		workarea.selectAll(".rect")
@@ -399,6 +407,7 @@
 		var plane = new Plane(this_node,thisJsonSubtree,true);
         id2plane[thisId] = plane;
 		plane.displayPlane();
+        // }
     });
         
     //--------------------------------------//
