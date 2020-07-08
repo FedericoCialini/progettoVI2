@@ -400,11 +400,11 @@
 		plane.displayPlane();
     });
         
-    function clusterIdsDfs(idStr, clusterIds) {
-        children = retrieveElementFromGraphByPathId(idStringToList(idStr));
+    function clusterIdsDfs(idStrOld, clusterIds) {
+        var children = retrieveElementFromGraphByPathId(idStringToList(idStrOld));
         children.forEach(function(child, i) {
             if(child[0]!=null) {
-                idStr = idStr+","+i;
+                var idStr = idStrOld+","+i;
                 clusterIds.push(idStr);
                 console.log(idStr);
                 console.log(clusterIds);
@@ -416,7 +416,7 @@
     function findAllClusterIds() {
         var clusterIds = [];
         clusterIds.push("0");
-        children = retrieveElementFromGraphByPathId([0]);
+        var children = retrieveElementFromGraphByPathId([0]);
         children.forEach(function(child, i) {
             if(child[0]!=null) {
                 var idStr = "0,"+i;
@@ -429,11 +429,11 @@
         return clusterIds;
     }
         
-    function nodeNumbersDfs(idStr, nodeNumbers) {
-        children = retrieveElementFromGraphByPathId(idStringToList(idStr));
+    function nodeNumbersDfs(idStrOld, nodeNumbers) {
+        var children = retrieveElementFromGraphByPathId(idStringToList(idStrOld));
         children.forEach(function(child, i) {
             if(child[0]!=null) {
-                var idStr = idStr+","+i;
+                var idStr = idStrOld+","+i;
                 nodeNumbersDfs(idStr, nodeNumbers);
             } else {
                 nodeNumbers.push(child);
@@ -443,7 +443,7 @@
         
     function findAllNodeNumbersInside(clusterId) {
         var nodeNumbers = [];
-        children = retrieveElementFromGraphByPathId(idStringToList(clusterId));
+        var children = retrieveElementFromGraphByPathId(idStringToList(clusterId));
         children.forEach(function(child, i) {
             if(child[0]!=null) {
                 var idStr = clusterId+","+i;
@@ -452,7 +452,7 @@
                 nodeNumbers.push(child);
             }
         });
-        return clusterIds;
+        return nodeNumbers;
     }
         
     function buildCluster2nodeNumber() {
@@ -469,7 +469,6 @@
 		var g = graph[0];
 		while (path[i]!=null) {
 			if(path.length==i+1){
-                console.log(g[path[i]]);
 				return g[path[i]];
 			}
 			else {
