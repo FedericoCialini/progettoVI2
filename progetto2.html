@@ -22,14 +22,17 @@
     const cluster_rect_width = 60;
     const cluster_rect_height = 60;
     const node_circle_r = 20;  // -> diameter is 2*r
-    const cluster_background_opacity = 0.1
+    const cluster_background_opacity = 0.1;
     
-    const animations_duration = 300 // in milliseconds
+    const animations_duration = 300; // in milliseconds
     
-    const panOnExplode = true
-    const panOnImplode = true
+    const panOnExplode = true;
+    const panOnImplode = true;
     
-    
+    const inferiorHueLimit = 40;
+    const superiorHueLimit = 80;//40 to 80 yellowish
+    const hueRangeTotal = 360;
+    const hueRangeEffective = hueRangeTotal + inferiorHueLimit - superiorHueLimit;
     
     //---------------- workarea ----------------//
     
@@ -99,14 +102,25 @@
         return y - cluster_rect_height/2;
     }
 
+    function codeToRealHue(number){
+    	if(number>=inferiorHueLimit){
+    		return number-inferiorHueLimit+superiorHueLimit;
+    	}
+    	else{
+    		return number;
+    	}
+    }
+
     function generateColors(amount) {
         var colorList = [];
+        var step = hueRangeEffective/amount;
         for(i=0; i<amount; i++) {
-            colorList.push("red");
+            var coded = codeToRealHue(step*i);
+            //colorList.push("red");
+            colorList.push("hsl("+coded+", 100%, 50%)");
         }
         return colorList;
     }
-        
         
         
     //---------------- plane ----------------//
