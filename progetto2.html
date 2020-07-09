@@ -470,7 +470,7 @@
 
     //--------------------------------------//
 
-    function drawEdgeByCoordinates(x1,y1,x2,y2,endIsCircle){
+    function drawEdgeByCoordinates(x1,y1,x2,y2,startIsCircle,endIsCircle){
         var xDirection = 0, yDirection = 0;
         if(x1 - x2 > 0) {
             xDirection = -1;
@@ -482,65 +482,6 @@
         } else if (y2 - y1 > 0) {
             yDirection = -1;
         }
-
-        var xTriPoint,yTriPoint,xTriUp,yTriUp,xTriBottom,yTriBottom;
-
-        if(endIsCircle){
-        	if(x2>x1){
-        		xTriPoint = x2 - node_circle_r;
-        		yTriPoint = y2;
-        		yTriUp = yTriPoint-7;
-        		yTriBottom = yTriPoint+7;
-        		xTriUp = xTriPoint-10;
-        		xTriBottom = xTriPoint-10;
-        	}
-        	else{//x2<x1
-        		xTriPoint = x2 + node_circle_r;
-        		yTriPoint = y2;
-        		yTriUp = yTriPoint-7;
-        		yTriBottom = yTriPoint+7;
-        		xTriUp = xTriPoint+10;
-        		xTriBottom = xTriPoint+10;
-        	}
-        }
-        else{
-        	if(x2>x1){
-        		xTriPoint = x2 - cluster_rect_width/2;
-        		yTriPoint = y2;
-        		yTriUp = yTriPoint-7;
-        		yTriBottom = yTriPoint+7;
-        		xTriUp = xTriPoint-10;
-        		xTriBottom = xTriPoint-10;
-        	}
-        	else{//x2<x1
-        		xTriPoint = x2 + cluster_rect_width/2;
-        		yTriPoint = y2;
-        		yTriUp = yTriPoint-7;
-        		yTriBottom = yTriPoint+7;
-        		xTriUp = xTriPoint+10;
-        		xTriBottom = xTriPoint+10;
-        	}
-        }
-
-        var Tri = workarea
-        	.append("polygon")
-        	.attr("class","edge")
-        	.attr("fill","black")
-            .attr("stroke","black")
-            .attr("stroke-width","2")
-            .attr("points",
-            	xTriPoint+","+yTriPoint+" "+
-            	xTriUp+","+yTriUp+" "+
-            	xTriBottom+","+yTriBottom)
-            .moveToBack();
-        
-        var coords = {};
-        coords["x1"] = x1;
-        coords["y1"] = y1;
-        coords["x2"] = x2;
-        coords["y2"] = y2;
-        coords["xDir"] = xDirection;
-        coords["yDir"] = yDirection;
         
         var drawEdge = function(d) {
                 var curveDistance = distance/2.5;
@@ -549,22 +490,65 @@
                 var curve_y2 = d.y2;
             
                 var edge = d3.path();
-                edge.moveTo(d.x1, d.y1);
+                if(d.startIsCircle) {
+                    edge.moveTo(d.x1, d.y1 - d.yDir * (node_circle_r + 1));
+                } else {
+                    edge.moveTo(d.x1, d.y1 - d.yDir * (cluster_rect_height/2 + 1));
+                }
                 edge.lineTo(d.x1, d.y2 + d.yDir * curveDistance);
                 edge.quadraticCurveTo(d.x1, d.y2, curve_x2, curve_y2);
-                edge.lineTo(d.x2, d.y2);
+                if(d.endIsCircle) {
+                    edge.lineTo(d.x2 - d.xDir * (node_circle_r + 1), d.y2);
+                } else {
+                    edge.lineTo(d.x2 - d.xDir * (cluster_rect_width/2 + 1), d.y2);
+                }
 
                 return edge;
             }
         
         if(xDirection != 0 && yDirection != 0) {
+
+            var coords = {};
+            coords["x1"] = x1;
+            coords["y1"] = y1;
+            coords["x2"] = x2;
+            coords["y2"] = y2;
+            coords["xDir"] = xDirection;
+            coords["yDir"] = yDirection;
+            coords["startIsCircle"] = startIsCircle;
+            coords["endIsCircle"] = endIsCircle;
+            
             workarea.append("path")
                 .attr("d", drawEdge(coords))
                 .attr("fill","none")
                 .attr("stroke","black")
                 .attr("stroke-width","2")
+                .attr("class","edge");
+                //.moveToBack();
+            
+            var xTriPoint,yTriPoint,xTriUp,yTriUp,xTriBottom,yTriBottom;
+            
+            if(endIsCircle) {
+                xTriPoint = x2 - xDirection * (node_circle_r + 1);
+            } else {
+                xTriPoint = x2 - xDirection * (cluster_rect_width/2 + 1);
+            }
+            yTriPoint = y2;
+            yTriUp = yTriPoint - 7;
+            yTriBottom = yTriPoint + 7;
+            xTriUp = xTriPoint - xDirection * 10;
+            xTriBottom = xTriPoint - xDirection * 10;
+
+            var Tri = workarea
+                .append("polygon")
                 .attr("class","edge")
-                .moveToBack();
+                .attr("fill","black")
+                .attr("stroke","black")
+                .attr("stroke-width","2")
+                .attr("points",
+                    xTriPoint+","+yTriPoint+" "+
+                    xTriUp+","+yTriUp+" "+
+                    xTriBottom+","+yTriBottom);
         }
         
     }
@@ -572,7 +556,9 @@
     function drawEdgeByNodes(startId,endId){
         var x1,y1,x2,y2;
         var endIsCircle = true;
+        var startIsCircle = true;
         if(cluster2nodeNumbers.hasOwnProperty(startId)){
+            startIsCircle = false;
             var startNode = workarea.select("[id='"+startId+"']")._groups[0][0];
             x1 = parseInt(startNode.attributes.x.value) + cluster_rect_width/2;
             y1 = parseInt(startNode.attributes.y.value) + cluster_rect_height/2;
@@ -591,7 +577,7 @@
             x2 = parseInt(endNode.attributes.cx.value);
             y2 = parseInt(endNode.attributes.cy.value);
         }
-        drawEdgeByCoordinates(x1,y1,x2,y2,endIsCircle);
+        drawEdgeByCoordinates(x1,y1,x2,y2,startIsCircle,endIsCircle);
     }
 
     function drawAllEdges(){
