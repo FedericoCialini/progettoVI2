@@ -99,6 +99,14 @@
         return y - cluster_rect_height/2;
     }
 
+    function generateColors(amount) {
+        var colorList = [];
+        for(i=0; i<amount; i++) {
+            colorList.push("red");
+        }
+        return colorList;
+    }
+        
         
         
     //---------------- plane ----------------//
@@ -130,11 +138,36 @@
             return element2coords;
         }
         
+        countClusterChildren() {
+            var count = 0;
+            this.elements.forEach(function(d, i) {
+                if(d[0]!=null) {
+                    count += 1;
+                }
+            });
+            return count;
+        }
+        
         displayChildren() {
             var thisId = this.node.attributes.id.value;
             var x = parseInt(this.node.attributes.x.value) + cluster_rect_width/2;
             var y = parseInt(this.node.attributes.y.value) + cluster_rect_height/2;
-
+            
+            //
+            var colorList;
+            var num_of_cluster_children = this.countClusterChildren();
+            if(this.is_root_node) {
+                colorList = generateColors(num_of_cluster_children);
+            } else {
+                var color = this.node.attributes.fill.value;
+                colorList = [];
+                for(i=0; i<num_of_cluster_children; i++) {
+                    colorList.push(color);
+                }
+            }
+            //
+            
+            var j=0;
             this.elements.forEach(function(d, i) {
                 var childId = thisId+","+i;
                 if(d[0]!=null){
@@ -148,7 +181,7 @@
                         .attr("ry", 10)
                         .attr("width", cluster_rect_width)
                         .attr("height", cluster_rect_height)
-                        .attr("fill", "red")
+                        .attr("fill", colorList[j])
                         .attr("stroke-width", 2)
                         .attr("stroke", "black")
                         .on("click", explode)
@@ -157,6 +190,7 @@
                     if(id2plane.hasOwnProperty(childId)) {
                         id2plane[childId].node = child_node;
                     }
+                    j+=1;
                 }
                 else {
                     var node = workarea
@@ -201,6 +235,7 @@
             var thisId = this.node.attributes.id.value;
             var x = parseInt(this.node.attributes.x.value) + cluster_rect_width/2;
             var y = parseInt(this.node.attributes.y.value) + cluster_rect_height/2;
+            var color = this.node.attributes.fill.value;
             return workarea
                 .append("rect")
                 .attr("id",thisId)
@@ -211,10 +246,10 @@
                 .attr("ry", 10)
                 .attr("width", this.elementCoords.length * distance)
                 .attr("height", this.elementCoords.length * distance)
-                .attr("fill", "blue")
+                .attr("fill", color)
                 .attr("fill-opacity", cluster_background_opacity)
                 .attr("stroke-width", 2)
-                .attr("stroke", "blue")
+                .attr("stroke", color)
                 .attr("stroke-opacity", cluster_background_opacity * 2)
                 .on("dblclick", implode);
         }
@@ -351,6 +386,7 @@
             var thisId = this.node.attributes.id.value;
             var x = parseInt(workarea.select("[id='"+thisId+"']").attr("x")) + distance/2 - cluster_rect_width/2;
             var y = parseInt(workarea.select("[id='"+thisId+"']").attr("y")) + distance/2 - cluster_rect_height/2;
+            var color = this.node.attributes.fill.value;
             workarea.selectAll("[id^='"+thisId+"']").remove();
             
             var new_node = workarea.append("rect")
@@ -362,7 +398,7 @@
                 .attr("ry", 10)
                 .attr("width", cluster_rect_width)
                 .attr("height", cluster_rect_height)
-                .attr("fill", "red")
+                .attr("fill", color)
                 .attr("stroke-width", 2)
                 .attr("stroke", "black")
                 .on("click", explode);
@@ -388,40 +424,6 @@
     var edges = new Map();
     var cluster2nodeNumbers = {};
     var nodeNumber2elementId = {};
-
-    /*
-	d3.json("clusters.json").then(function(data) {
-		// main(err, ...data) {
-        //      data[0] = clusters, data[1] = edges
-        graph[0] = data;
-        buildCluster2nodeNumbers();
-        buildNodeNumber2element();
-		workarea.selectAll(".rect")
-			.data(data)
-			.enter()
-            .append("g")
-            .attr("id",0)
-            .attr("class","plane")
-            .attr("x", workarea_center_x)
-			.attr("y", workarea_center_y)
-        var thisId = "0";
-		var thisIdAsPath = [0];
-		var thisJsonSubtree = retrieveElementFromGraphByPathId(thisIdAsPath);
-        var this_node = workarea.select("[id='"+thisId+"']")._groups[0][0];
-		var plane = new Plane(this_node,thisJsonSubtree,true);
-        id2plane[thisId] = plane;
-		plane.displayPlane();
-        // }
-    });
-
-    */
-
-    /*
-    d3.queue()
-        .defer(d3.json, "clusters.json")
-        .defer(d3.json, "edges.json")
-        .await(main);
-    */
 
     d3.selection.prototype.moveToFront = function() {  
       return this.each(function(){
