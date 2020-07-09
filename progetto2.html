@@ -470,7 +470,7 @@
 
     //--------------------------------------//
 
-    function drawEdgeByCoordinates(x1,y1,x2,y2){
+    function drawEdgeByCoordinates(x1,y1,x2,y2,endIsCircle){
         var xDirection = 0, yDirection = 0;
         if(x1 - x2 > 0) {
             xDirection = -1;
@@ -482,6 +482,57 @@
         } else if (y2 - y1 > 0) {
             yDirection = -1;
         }
+
+        var xTriPoint,yTriPoint,xTriUp,yTriUp,xTriBottom,yTriBottom;
+
+        if(endIsCircle){
+        	if(x2>x1){
+        		xTriPoint = x2 - node_circle_r;
+        		yTriPoint = y2;
+        		yTriUp = yTriPoint-7;
+        		yTriBottom = yTriPoint+7;
+        		xTriUp = xTriPoint-10;
+        		xTriBottom = xTriPoint-10;
+        	}
+        	else{//x2<x1
+        		xTriPoint = x2 + node_circle_r;
+        		yTriPoint = y2;
+        		yTriUp = yTriPoint-7;
+        		yTriBottom = yTriPoint+7;
+        		xTriUp = xTriPoint+10;
+        		xTriBottom = xTriPoint+10;
+        	}
+        }
+        else{
+        	if(x2>x1){
+        		xTriPoint = x2 - cluster_rect_width/2;
+        		yTriPoint = y2;
+        		yTriUp = yTriPoint-7;
+        		yTriBottom = yTriPoint+7;
+        		xTriUp = xTriPoint-10;
+        		xTriBottom = xTriPoint-10;
+        	}
+        	else{//x2<x1
+        		xTriPoint = x2 + cluster_rect_width/2;
+        		yTriPoint = y2;
+        		yTriUp = yTriPoint-7;
+        		yTriBottom = yTriPoint+7;
+        		xTriUp = xTriPoint+10;
+        		xTriBottom = xTriPoint+10;
+        	}
+        }
+
+        var Tri = workarea
+        	.append("polygon")
+        	.attr("class","edge")
+        	.attr("fill","black")
+            .attr("stroke","black")
+            .attr("stroke-width","2")
+            .attr("points",
+            	xTriPoint+","+yTriPoint+" "+
+            	xTriUp+","+yTriUp+" "+
+            	xTriBottom+","+yTriBottom)
+            .moveToBack();
         
         var coords = {};
         coords["x1"] = x1;
@@ -520,6 +571,7 @@
 
     function drawEdgeByNodes(startId,endId){
         var x1,y1,x2,y2;
+        var endIsCircle = true;
         if(cluster2nodeNumbers.hasOwnProperty(startId)){
             var startNode = workarea.select("[id='"+startId+"']")._groups[0][0];
             x1 = parseInt(startNode.attributes.x.value) + cluster_rect_width/2;
@@ -530,15 +582,16 @@
             y1 = parseInt(startNode.attributes.cy.value);
         }
         if(cluster2nodeNumbers.hasOwnProperty(endId)){
+        	endIsCircle = false;
             var endNode = workarea.select("[id='"+endId+"']")._groups[0][0];
             x2 = parseInt(endNode.attributes.x.value) + cluster_rect_width/2;
             y2 = parseInt(endNode.attributes.y.value) + cluster_rect_height/2;
-        }else{
+        }else{      	
             var endNode = workarea.select("[id='"+endId+"']").select(".circle")._groups[0][0];
             x2 = parseInt(endNode.attributes.cx.value);
             y2 = parseInt(endNode.attributes.cy.value);
         }
-        drawEdgeByCoordinates(x1,y1,x2,y2);
+        drawEdgeByCoordinates(x1,y1,x2,y2,endIsCircle);
     }
 
     function drawAllEdges(){
