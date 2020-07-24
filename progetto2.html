@@ -10,7 +10,10 @@
     <p hidden><input type="file" id="file-selector"></p>
 	<script type="text/javascript"> 
         
+        
+        
     //---------------- constants ----------------//
+        
 
 	const workarea_width = 1600;
 	const workarea_height = 900;
@@ -29,7 +32,8 @@
     
     const hueRange = 360;   //HSL
     const nodeHue = 60;
-    const saturation = 100;
+    const nodeSaturation = 100;
+    const clusterSaturation = 85;
     const lightness = 50;
         
     const base_bg_opacity = 0.25;
@@ -40,7 +44,10 @@
 
     const defaultGraph = examples[1];
     
+        
+    
     //---------------- workarea ----------------//
+        
     
     var currentZoomScale = 1;
     var zoom = d3.zoom().on("zoom", function() {
@@ -53,12 +60,14 @@
 		.attr("width", workarea_width).attr("height", workarea_height)
         .attr("style", "outline: medium solid black;")
         .call(zoom)
-        .on("dblclick.zoom", null)
-        ;
+        .on("dblclick.zoom", null);
 
-
-        
 	var workarea = container.append("g");
+        
+    
+        
+    //---------------- menu ----------------//
+        
 
 	var hamburger = container.append("g");
 
@@ -119,24 +128,25 @@
 
     	else {
 
-            var sfondo = container.append("rect").attr("fill", "#36393f").attr("stroke","black").attr("stroke-width",3)
-                    .attr("class","help").attr("x",0 ).attr("y",70).attr("width", workarea_width/3.65).attr("height", workarea_height*3/4).attr("opacity",0.9);
+            var sfondo = container.append("rect").attr("fill", "#36393f").attr("stroke","#202225").attr("stroke-width",3)
+                    .attr("class","help").attr("x",0 ).attr("y",70).attr("width", workarea_width/4).attr("height", workarea_height*2/3).attr("opacity",0.9);
+            
     		var list = container.append("foreignObject").attr("class","help").attr("x",0 ).attr("y",50)
                 .attr("width", workarea_width/4).attr("height", workarea_height*3/4).append("xhtml:body").append("ul").style("line-height","2em")
-                .style("list-style","none").style("color", "#eaeaeb").style("font-size", "38px").style("text-shadow","2px 2px #000000").style("font-family","Ubuntu");
+                .style("list-style","none").style("color", "#eaeaeb").style("font-size", "34px").style("text-shadow","2px 2px #000000").style("font-family","Ubuntu");
             var zero = 0;
             load = list.append("li").html("load graph").append("ul").style("list-style","none");
             small = load.append("li").html("small example").on("click", function(){
                     clearWorkarea();
                     loadGraph(examples[0]);});
-            medium = load.append("li").html("med example").on("click", function(){
+            medium = load.append("li").html("medium example").on("click", function(){
                     clearWorkarea();
                     loadGraph(examples[1]);});
             big = load.append("li").html("big example").on("click", function(){
                     clearWorkarea();
                     loadGraph(examples[2]);});
             load.append(function(){return fileSelector;});
-            download = list.append("li").html("download").on("click", downloadGraph);
+            download = list.append("li").html("download graph").on("click", downloadGraph);
 	    	info = list.append("li").html("info").on("click", printInfo);
 			credits = list.append("li").html("credits").on("click", printCredits);
 
@@ -178,7 +188,7 @@
 
 	function printCredits(){
 
-        var textString1 = "Authors: Luca Emili & Matteo Cesari,";
+        var textString1 = "Authors: Luca Emili & Matteo Cesari";
         var textString2 = "Year: 2020";
         
         var plane = container.append("rect")
@@ -228,7 +238,7 @@
         
             
         
-    //---------------- support functions ----------------//
+    //---------------- plane support functions ----------------//
         
         
     function getRandomIntInRange(min, max) {
@@ -281,7 +291,7 @@
         var step = hueRange/(amount+1); 
         for(i=1; i<=amount; i++) {
             var coded = codeToRealHue(step*(i));
-            colorList.push("hsl("+coded+", "+saturation+"%, "+lightness+"%)");
+            colorList.push("hsl("+coded+", "+clusterSaturation+"%, "+lightness+"%)");
         }
         return colorList;
     }
@@ -383,7 +393,7 @@
                         .attr("cy", y + (this.elementCoords[i][1] - 1) * distance)
                         .attr("r", node_circle_r)
                         .attr("info", d)
-                        .attr("fill", "hsl("+nodeHue+", "+saturation+"%, "+lightness+"%)")
+                        .attr("fill", "hsl("+nodeHue+", "+nodeSaturation+"%, "+lightness+"%)")
                         .attr("stroke-width", 2)
                         .attr("stroke", "black");
                     node
@@ -652,7 +662,7 @@
 		    a.click();
 		}
 
-    	download(JSON.stringify(currentJson), 'graph.json', 'text/plain');
+    	download(JSON.stringify(currentJson, null, 4), 'graph.json', 'application/json');
 
     }
 
@@ -666,7 +676,7 @@
 	    });
 
 	    Promise.all(promises).then(function(values) {
-            currentJson = values;
+            currentJson = values[0];
 	        graph[0] = values[0].clusters;
 	        edges = values[0].edges;
 	        buildCluster2nodeNumbers();
