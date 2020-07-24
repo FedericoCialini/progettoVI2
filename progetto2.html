@@ -586,6 +586,7 @@
             // if this is the root cluster node
             if(this.is_root_node) {
                 this.displayChildren()
+                panAndZoomToRootPlaneCenter(this)
                 
             // if this is NOT the root cluster node
             } else {
@@ -1053,8 +1054,24 @@
             });
     }
         
-    function panToRootPlaneCenter() {
-        //TODO
+    function panAndZoomToRootPlaneCenter(rootPlane) {
+        
+        var x = parseInt(rootPlane.node.attributes.x.value) + cluster_rect_width/2;
+        var y = parseInt(rootPlane.node.attributes.y.value) + cluster_rect_height/2;
+        var width = rootPlane.elementCoords.length * distance;
+        var height = rootPlane.elementCoords.length * distance;
+        
+        currentZoomScale = Math.min(container.attr("width")/(width + 2*distance), container.attr("height")/(height + 2*distance))
+
+        var tx = (-width/2 - x) * currentZoomScale + container.attr("width")/2;
+        var ty = (-height/2 - y) * currentZoomScale + container.attr("height")/2;
+                          
+        workarea.transition()
+            .duration(animations_duration)
+            .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
+            .on("end", function() {
+                container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+            });    
     }
 
 	</script>
