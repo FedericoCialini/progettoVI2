@@ -43,6 +43,10 @@
     const examples = [["graphs/small.json"],["graphs/medium.json"],["graphs/big.json"]];
 
     const defaultGraph = examples[1];
+        
+    const menu_bg_color = "#36393f"
+    const menu_stroke_color = "#202225"
+    const menu_text_color = "#eaeaeb"
     
         
     
@@ -68,37 +72,44 @@
         
     //---------------- menu ----------------//
         
-
-	var hamburger = container.append("g");
-
-	hamburger.append("rect").attr("fill", "white")
-                .attr("x", 10)
-                .attr("y", 10)
-                .attr("width", 50)
-                .attr("height", 50)
-	hamburger.append("rect").attr("fill", "black")
-                .attr("x", 10)
-                .attr("y", 10)
-                .attr("width", 50)
-                .attr("height", 10)
-    hamburger.append("rect").attr("fill", "black")
-                .attr("x", 10)
-                .attr("y", 30)
-                .attr("width", 50)
-                .attr("height", 10)
-    hamburger.append("rect").attr("fill", "black")
-                .attr("x", 10)
-                .attr("y", 50)
-                .attr("width", 50)
-                .attr("height", 10)
+        
+    function generateHamburger(color, stroke_color) {
+        container.selectAll(".hamburger").remove();
+        
+        var hamburger = container.append("g").attr("class", "hamburger");
+        hamburger.append("rect")
+                    .attr("x", 10)
+                    .attr("y", 10)
+                    .attr("width", 50)
+                    .attr("height", 50)
+                    .attr("opacity", 0.0)
+        hamburger.append("rect").attr("fill", color)
+                    .attr("x", 10)
+                    .attr("y", 10)
+                    .attr("width", 50)
+                    .attr("height", 10)
+                    .attr("stroke",stroke_color).attr("stroke-width",2)
+        hamburger.append("rect").attr("fill", color)
+                    .attr("x", 10)
+                    .attr("y", 30)
+                    .attr("width", 50)
+                    .attr("height", 10)
+                    .attr("stroke",stroke_color).attr("stroke-width",2)
+        hamburger.append("rect").attr("fill", color)
+                    .attr("x", 10)
+                    .attr("y", 50)
+                    .attr("width", 50)
+                    .attr("height", 10)
+                    .attr("stroke",stroke_color).attr("stroke-width",2)
+        hamburger.on("click", function(){showListHelp(helpIsVisible)});
+    }
+    
+    generateHamburger("black", null);
 
     var helpIsVisible = false;
     var listJsonIsVisible = false;
     var currentJson;
-
     var small,medium,big,download,info,credits,load;
-
-    hamburger.on("click", function(){showListHelp(helpIsVisible)});
 
     var fileSelector = document.getElementById('file-selector');
     fileSelector.addEventListener('change', (event) => {
@@ -122,33 +133,39 @@
     function showListHelp(thisHelpIsVisible){
 
     	if(thisHelpIsVisible){
+            generateHamburger("black", null);
     		container.selectAll(".help").remove();
     		helpIsVisible = false;
     	}
 
     	else {
-
-            var sfondo = container.append("rect").attr("fill", "#36393f").attr("stroke","#202225").attr("stroke-width",3)
-                    .attr("class","help").attr("x",0 ).attr("y",70).attr("width", workarea_width/4).attr("height", workarea_height*2/3).attr("opacity",0.9);
+            
+            var sfondo = container.append("rect").attr("fill", menu_bg_color).attr("stroke", menu_stroke_color).attr("stroke-width",3)
+                    .attr("class","help").attr("x",0 ).attr("y",0).attr("width", workarea_width/4).attr("height", workarea_height*3/4).attr("opacity",0.9);
+            
+            generateHamburger(menu_text_color, "black");
             
     		var list = container.append("foreignObject").attr("class","help").attr("x",0 ).attr("y",50)
                 .attr("width", workarea_width/4).attr("height", workarea_height*3/4).append("xhtml:body").append("ul").style("line-height","2em")
-                .style("list-style","none").style("color", "#eaeaeb").style("font-size", "34px").style("text-shadow","2px 2px #000000").style("font-family","Ubuntu");
+                .style("list-style","none").style("color", menu_text_color).style("font-size", "34px").style("text-shadow","2px 2px #000000").style("font-family","Ubuntu");
             var zero = 0;
-            load = list.append("li").html("load graph").append("ul").style("list-style","none");
+            load = list.append("li").html("Load graph:").append("ul").style("list-style","none");
             small = load.append("li").html("small example").on("click", function(){
                     clearWorkarea();
+                    generateHamburger("black", null);
                     loadGraph(examples[0]);});
             medium = load.append("li").html("medium example").on("click", function(){
                     clearWorkarea();
+                    generateHamburger("black", null);
                     loadGraph(examples[1]);});
             big = load.append("li").html("big example").on("click", function(){
                     clearWorkarea();
+                    generateHamburger("black", null);
                     loadGraph(examples[2]);});
             load.append(function(){return fileSelector;});
-            download = list.append("li").html("download graph").on("click", downloadGraph);
-	    	info = list.append("li").html("info").on("click", printInfo);
-			credits = list.append("li").html("credits").on("click", printCredits);
+            download = list.append("li").html("Download graph").on("click", downloadGraph);
+	    	info = list.append("li").html("Help").on("click", printInfo);
+			credits = list.append("li").html("Credits").on("click", printCredits);
 
 			helpIsVisible = true;
     	}
