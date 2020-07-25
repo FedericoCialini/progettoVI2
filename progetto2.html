@@ -115,7 +115,7 @@
                     .attr("width", 50)
                     .attr("height", 10)
                     .attr("stroke",stroke_color).attr("stroke-width",2)
-        hamburger.on("click", function(){showListHelp(helpIsVisible)});
+        hamburger.on("click", function(){showListMenu(menuIsVisible)});
     }
         
     function changeHamburgerColors(color, stroke_color) {
@@ -128,7 +128,9 @@
     
     generateHamburger("black", null);
 
-    var helpIsVisible = false;
+    var menuIsVisible = false;
+    var creditsIsVisible = false;
+	var infoIsVisible = false;
     var listJsonIsVisible = false;
     var currentJson;
     var small,medium,big,download,info,credits,load;
@@ -148,26 +150,26 @@
 
     function clearWorkarea(){
         workarea.selectAll('*').remove();
-        container.selectAll(".help").remove();
-        helpIsVisible = false;
+        container.selectAll(".menu").remove();
+        menuIsVisible = false;
     }
 
-    function showListHelp(thisHelpIsVisible){
+    function showListMenu(thisMenuIsVisible){
 
-    	if(thisHelpIsVisible){
+    	if(thisMenuIsVisible){
             changeHamburgerColors("black", null);
-    		container.selectAll(".help").remove();
-    		helpIsVisible = false;
+    		container.selectAll(".menu").remove();
+    		menuIsVisible = false;
     	}
 
     	else {
             
             var sfondo = container.append("rect").attr("fill", menu_bg_color).attr("stroke", menu_stroke_color).attr("stroke-width",3)
-                    .attr("class","help").attr("x",0 ).attr("y",0).attr("width", workarea_width/4).attr("height", workarea_height*3/4).attr("opacity",0.9);
+                    .attr("class","menu").attr("x",0 ).attr("y",0).attr("width", workarea_width/4).attr("height", workarea_height*3/4).attr("opacity",0.9);
             
             changeHamburgerColors(menu_text_color, "black");
             
-    		var list = container.append("foreignObject").attr("class","help").attr("x",0 ).attr("y",50)
+    		var list = container.append("foreignObject").attr("class","menu").attr("x",0 ).attr("y",50)
                 .attr("width", workarea_width/4).attr("height", workarea_height*3/4).append("xhtml:body").append("ul").style("line-height","2em")
                 .style("list-style","none").style("color", menu_text_color).style("font-size", "34px").style("text-shadow","2px 2px #000000").style("font-family","Ubuntu");
             var zero = 0;
@@ -186,83 +188,117 @@
                     loadGraph(examples[2]);});
             load.append(function(){return fileSelector;});
             download = list.append("li").html("Download graph").on("click", downloadGraph);
-	    	info = list.append("li").html("Help").on("click", printInfo);
-			credits = list.append("li").html("Credits").on("click", printCredits);
+	    	info = list.append("li").html("Help").on("click", function(){printInfo(infoIsVisible);});
+			credits = list.append("li").html("Credits").on("click", function(){printCredits(creditsIsVisible);});
 
-			helpIsVisible = true;
+			menuIsVisible = true;
     	}
     	
     }  
 	
 
-	function printInfo(){
+	function printInfo(thisInfoIsVisible){
 
-        var textString = "istruzioni";
-        
-        var plane = container.append("rect")
-                .attr("fill", "grey")
-                .attr("stroke","black")
-                .attr("stroke-width",3)
-                .attr("x", workarea_center_x-window.innerWidth/4)
-                .attr("y", workarea_center_y-window.innerHeight/4)
-                .attr("width", window.innerWidth/2)
-                .attr("height", window.innerHeight/2)
-                .on("click",removeTextArea);
+		if(!thisInfoIsVisible){
 
-        var textArea = container.append("text")
-                .attr("x", workarea_center_x)
-                .attr("y", workarea_center_y)
-                .attr("font-family","sans-serif")
-                .style("text-anchor", "middle")
-                .text(textString)
-                .style("font-size", 70)
-                .attr("dy", ".35em").on("click",removeTextArea);
+	        //var textString = "istruzioni";
+	        var textString = '-click on rect(cluster): expand the cluster <br>-double-click on rect-shadow(expanded cluster): implode the cluster(and all the inner ones) <br>-zoom-in/out with the mouse wheel <br>-holding click and move mouse for panning <br>-click on the Load graph options for <br>loading examples or upload and load <br>your own graph <br>-Download graph lets you download the .json <br>of the current drawed graph <br>-how to code right your clustered <br>graph .json for the tool: <br>{ <br>&emsp;"clusters" : <br>&emsp;[[<br>&emsp;&emsp;[<br>&emsp;&emsp;&emsp;1,<br>&emsp;&emsp;&emsp;2<br>&emsp;&emsp;],<br>&emsp;&emsp;3,<br>&emsp;&emsp;[<br>&emsp;&emsp;&emsp;...<br>&emsp;&emsp;],<br>&emsp;&emsp;...<br>&emsp;]], <br><br>&emsp;// we are interested only in direct graphs<br>&emsp;"edges" : {<br>&emsp;&emsp;"1" : [2],<br>&emsp;&emsp;"2" : [5,...],<br>&emsp;&emsp;...<br>&emsp;}<br>}';
 
-        function removeTextArea(){
-            plane.remove();
-            textArea.remove();
-        }
+	        var plane = container.append("rect")
+	        		.attr("class","info")
+	                .attr("fill", menu_bg_color)
+	                .attr("stroke", menu_stroke_color)
+	                .attr("stroke-width",3)
+	                .attr("x", window.innerWidth-500)
+	                .attr("y", 0)
+	                .attr("width", 500)
+	                .attr("height", window.innerHeight-100)
+	                .attr("opacity",0.9)
+	                .on("click",removeInfoArea);
+	        
+	        var htmlBody = container.append("foreignObject")
+	        		.attr("class","info")
+	                .attr("x", window.innerWidth-500)
+	                .attr("y", 0)
+	                .attr("width", 500)
+	                .attr("height", window.innerHeight-100)
+	                .on("click",removeInfoArea)
+	                .append("xhtml:body")
+	                .style("color", menu_text_color)
+	                .style("font-size", "22px")
+	                .style("text-shadow","2px 2px #000000")
+	                .style("font-family","Ubuntu")
+	                .style("line-height","1.25em")
+	                .on("click",removeInfoArea);
+
+	        htmlBody.html(textString).on("click",removeInfoArea);
+
+	        infoIsVisible = true;
+
+	    	} else {
+
+	    		removeInfoArea();
+				infoIsVisible = false;
+
+	    	}
+
+	}
+
+	function removeInfoArea(){
+
+        container.selectAll(".info").remove();
+		infoIsVisible = false;
+
+    }
+
+	function printCredits(thisCreditsIsVisible){
+
+		if(!thisCreditsIsVisible){
+
+	        var textString = "Authors: Luca Emili & Matteo Cesari, Academic year: 2019-2020";
+
+	        var plane = container.append("rect")
+	        		.attr("class","credits")
+	                .attr("fill", menu_bg_color)
+	                .attr("stroke", menu_stroke_color)
+	                .attr("stroke-width",3)
+	                .attr("x", 0)
+	                .attr("y", window.innerHeight-100)
+	                .attr("width", window.innerWidth)
+	                .attr("height", 100)
+	                .attr("opacity",0.9)
+	                .on("click",removeCreditsArea);
+
+	        var textArea = container.append("text")
+	        		.attr("class","credits")
+	                .attr("x", window.innerWidth/2)
+	                .attr("y", window.innerHeight-40)
+	                .attr("font-family","sans-serif")
+	                .style("text-anchor", "middle")
+	                .text(textString)
+	                .style("font-size", 50)
+	                .attr("fill", menu_text_color)
+	                .style("text-shadow","2px 2px #000000")
+	                .style("font-family","Ubuntu")
+	                .on("click",removeCreditsArea);
+
+	        creditsIsVisible = true;
+		
+		} else {
+
+			removeCreditsArea();
+			creditsIsVisible = false;
+
+		}
 
 	}
 
-	function printCredits(){
+	function removeCreditsArea(){
 
-        var textString1 = "Authors: Luca Emili & Matteo Cesari";
-        var textString2 = "Year: 2020";
-        
-        var plane = container.append("rect")
-                .attr("fill", "grey")
-                .attr("stroke","black")
-                .attr("stroke-width",3)
-                .attr("x", workarea_center_x-window.innerWidth/4)
-                .attr("y", workarea_center_y-window.innerHeight/4)
-                .attr("width", window.innerWidth/2)
-                .attr("height", window.innerHeight/2)
-                .on("click",removeTextArea);
+		container.selectAll(".credits").remove();
+		creditsIsVisible = false;
 
-        var textArea1 = container.append("text")
-                .attr("x", workarea_center_x)
-                .attr("y", workarea_center_y)
-                .attr("font-family","sans-serif")
-                .style("text-anchor", "middle")
-                .text(textString1)
-                .style("font-size", 40)
-
-        var textArea2 = container.append("text")
-                .attr("x", workarea_center_x)
-                .attr("y", workarea_center_y + 80)
-                .attr("font-family","sans-serif")
-                .style("text-anchor", "middle")
-                .text(textString2)
-                .style("font-size", 40);
-
-        function removeTextArea(){
-            plane.remove();
-            textArea1.remove();
-            textArea2.remove();
-        }
-
-	}
+    }
         
             
         
