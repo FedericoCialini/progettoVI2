@@ -167,8 +167,6 @@
             var sfondo = container.append("rect").attr("fill", menu_bg_color).attr("stroke", menu_stroke_color).attr("stroke-width",3)
                     .attr("class","menu").attr("x",0 ).attr("y",0).attr("width", workarea_width/4).attr("height", workarea_height*3/4).attr("opacity",0.9);
             
-            changeHamburgerColors(menu_text_color, "black");
-            
     		var list = container.append("foreignObject").attr("class","menu").attr("x",0 ).attr("y",50)
                 .attr("width", workarea_width/4).attr("height", workarea_height*3/4).append("xhtml:body").append("ul").style("line-height","2em")
                 .style("list-style","none").style("color", menu_text_color).style("font-size", "34px").style("text-shadow","2px 2px #000000").style("font-family","Ubuntu");
@@ -190,6 +188,8 @@
             download = list.append("li").html("Download graph").on("click", downloadGraph);
 	    	info = list.append("li").html("Help").on("click", function(){printInfo(infoIsVisible);});
 			credits = list.append("li").html("Credits").on("click", function(){printCredits(creditsIsVisible);});
+            
+            changeHamburgerColors(menu_text_color, "black");
 
 			menuIsVisible = true;
     	}
@@ -1139,16 +1139,27 @@
             });    
     }
         
+    function updateZoomScaleAfterWindowResize(oldWidth, oldHeight, newWidth, newHeight) {
+        currentZoomScale = Math.min(newWidth/oldWidth, newHeight/oldHeight);
+        
+        workarea.transition()
+            .duration(animations_duration)
+            .attr("transform", "scale("+currentZoomScale+")")
+            .on("end", function() {
+                container.call(zoom.transform, d3.zoomIdentity.scale(currentZoomScale));
+            });    
+    }
+        
     // WIP
     function panAndZoomToCurrentWorkareaCenter(oldWidth, oldHeight, newWidth, newHeight) {
         
         var x = workarea.attr("x"); // THIS DOESN'T WORK! T-T
         var y = workarea.attr("y"); // THIS DOESN'T WORK! T-T
         
-        console.log(x)
-        console.log(y)
+        console.log(x);
+        console.log(y);
         
-        currentZoomScale = Math.min(newWidth/oldWidth, newHeight/oldHeight)
+        currentZoomScale = Math.min(newWidth/oldWidth, newHeight/oldHeight);
 
         var tx = (-oldWidth/2 - x) * currentZoomScale + newWidth/2;
         var ty = (-oldHeight/2 - y) * currentZoomScale + newHeight/2;
