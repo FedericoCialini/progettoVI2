@@ -103,6 +103,14 @@
                     .attr("stroke",stroke_color).attr("stroke-width",2)
         hamburger.on("click", function(){showListHelp(helpIsVisible)});
     }
+        
+    function changeHamburgerColors(color, stroke_color) {
+        hamburger = container.select(".hamburger")
+        hamburger.selectAll("rect")
+                .attr("fill", color)
+                .attr("stroke", stroke_color)
+        hamburger.moveToFront()   
+    }
     
     generateHamburger("black", null);
 
@@ -133,7 +141,7 @@
     function showListHelp(thisHelpIsVisible){
 
     	if(thisHelpIsVisible){
-            generateHamburger("black", null);
+            changeHamburgerColors("black", null);
     		container.selectAll(".help").remove();
     		helpIsVisible = false;
     	}
@@ -143,7 +151,7 @@
             var sfondo = container.append("rect").attr("fill", menu_bg_color).attr("stroke", menu_stroke_color).attr("stroke-width",3)
                     .attr("class","help").attr("x",0 ).attr("y",0).attr("width", workarea_width/4).attr("height", workarea_height*3/4).attr("opacity",0.9);
             
-            generateHamburger(menu_text_color, "black");
+            changeHamburgerColors(menu_text_color, "black");
             
     		var list = container.append("foreignObject").attr("class","help").attr("x",0 ).attr("y",50)
                 .attr("width", workarea_width/4).attr("height", workarea_height*3/4).append("xhtml:body").append("ul").style("line-height","2em")
@@ -152,15 +160,15 @@
             load = list.append("li").html("Load graph:").append("ul").style("list-style","none");
             small = load.append("li").html("small example").on("click", function(){
                     clearWorkarea();
-                    generateHamburger("black", null);
+                    changeHamburgerColors("black", null);
                     loadGraph(examples[0]);});
             medium = load.append("li").html("medium example").on("click", function(){
                     clearWorkarea();
-                    generateHamburger("black", null);
+                    changeHamburgerColors("black", null);
                     loadGraph(examples[1]);});
             big = load.append("li").html("big example").on("click", function(){
                     clearWorkarea();
-                    generateHamburger("black", null);
+                    changeHamburgerColors("black", null);
                     loadGraph(examples[2]);});
             load.append(function(){return fileSelector;});
             download = list.append("li").html("Download graph").on("click", downloadGraph);
@@ -1056,8 +1064,8 @@
         
     function panAndZoomToRootPlaneCenter(rootPlane) {
         
-        var x = parseInt(rootPlane.node.attributes.x.value) + cluster_rect_width/2;
-        var y = parseInt(rootPlane.node.attributes.y.value) + cluster_rect_height/2;
+        var x = parseInt(rootPlane.node.attributes.x.value);
+        var y = parseInt(rootPlane.node.attributes.y.value);
         var width = rootPlane.elementCoords.length * distance;
         var height = rootPlane.elementCoords.length * distance;
         
