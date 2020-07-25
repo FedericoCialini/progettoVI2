@@ -65,8 +65,22 @@
         .attr("style", "outline: medium solid black;")
         .call(zoom)
         .on("dblclick.zoom", null);
-
-	var workarea = container.append("g");
+        
+    var workarea = container.append("g");    
+    
+    function resize_container() {
+    	var innerWidth = window.innerWidth-20;
+    	var innerHeight = window.innerHeight-20;
+        //var oldContainerWidth = container.attr("width");
+        //var oldContainerHeight = container.attr("height");
+        container.attr("width",innerWidth).attr("height",innerHeight);
+        if(typeof id2plane !== 'undefined') panAndZoomToRootPlaneCenter(id2plane['0']);
+        //panAndZoomToCurrentWorkareaCenter(oldContainerWidth, oldContainerHeight, innerWidth, innerHeight);
+    }
+        
+    resize_container();
+        
+    window.addEventListener("resize", resize_container);
         
     
         
@@ -249,17 +263,6 @@
         }
 
 	}
-	
-        
-    function resize_container() {
-    	var innerWidth = window.innerWidth-20;
-    	var innerHeight = window.innerHeight-20;
-        container.attr("width",innerWidth).attr("height",innerHeight);
-    }
-        
-    resize_container();
-        
-    window.addEventListener("resize", resize_container);
         
             
         
@@ -1062,6 +1065,24 @@
             });
     }
         
+    function panToRootPlaneCenter(rootPlane) {
+        
+        var x = parseInt(rootPlane.node.attributes.x.value);
+        var y = parseInt(rootPlane.node.attributes.y.value);
+        var width = rootPlane.elementCoords.length * distance;
+        var height = rootPlane.elementCoords.length * distance;
+
+        var tx = (-width/2 - x) * currentZoomScale + container.attr("width")/2;
+        var ty = (-height/2 - y) * currentZoomScale + container.attr("height")/2;
+                          
+        workarea.transition()
+            .duration(animations_duration)
+            .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
+            .on("end", function() {
+                container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+            });    
+    }
+        
     function panAndZoomToRootPlaneCenter(rootPlane) {
         
         var x = parseInt(rootPlane.node.attributes.x.value);
@@ -1073,6 +1094,28 @@
 
         var tx = (-width/2 - x) * currentZoomScale + container.attr("width")/2;
         var ty = (-height/2 - y) * currentZoomScale + container.attr("height")/2;
+                          
+        workarea.transition()
+            .duration(animations_duration)
+            .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
+            .on("end", function() {
+                container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+            });    
+    }
+        
+    // WIP
+    function panAndZoomToCurrentWorkareaCenter(oldWidth, oldHeight, newWidth, newHeight) {
+        
+        var x = workarea.attr("x"); // THIS DOESN'T WORK! T-T
+        var y = workarea.attr("y"); // THIS DOESN'T WORK! T-T
+        
+        console.log(x)
+        console.log(y)
+        
+        currentZoomScale = Math.min(newWidth/oldWidth, newHeight/oldHeight)
+
+        var tx = (-oldWidth/2 - x) * currentZoomScale + newWidth/2;
+        var ty = (-oldHeight/2 - y) * currentZoomScale + newHeight/2;
                           
         workarea.transition()
             .duration(animations_duration)
