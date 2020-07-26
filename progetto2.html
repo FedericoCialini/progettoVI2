@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="lib/d3/d3.min.js"></script>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu:regular,bold&subset=Latin">
 </head>
-<body>
+<body link="37c6ff">   <!--link="42a5f5"-->
     <p hidden><input type="file" id="file-selector"></p>
 	<script type="text/javascript"> 
         
@@ -201,8 +201,17 @@
 
 		if(!thisInfoIsVisible){
 
-	        //var textString = "istruzioni";
-	        var textString = '-click on rect(cluster): expand the cluster <br>-double-click on rect-shadow(expanded cluster): implode the cluster(and all the inner ones) <br>-zoom-in/out with the mouse wheel <br>-holding click and move mouse for panning <br>-click on the Load graph options for <br>loading examples or upload and load <br>your own graph <br>-Download graph lets you download the .json <br>of the current drawed graph <br>-how to code right your clustered <br>graph .json for the tool: <br>{ <br>&emsp;"clusters" : <br>&emsp;[[<br>&emsp;&emsp;[<br>&emsp;&emsp;&emsp;1,<br>&emsp;&emsp;&emsp;2<br>&emsp;&emsp;],<br>&emsp;&emsp;3,<br>&emsp;&emsp;[<br>&emsp;&emsp;&emsp;...<br>&emsp;&emsp;],<br>&emsp;&emsp;...<br>&emsp;]], <br><br>&emsp;// we are interested only in direct graphs<br>&emsp;"edges" : {<br>&emsp;&emsp;"1" : [2],<br>&emsp;&emsp;"2" : [5,...],<br>&emsp;&emsp;...<br>&emsp;}<br>}';
+	        var textString =  "- circles = nodes <br><br>"
+                textString += "- curved rectangles = clusters <br><br>"
+                textString += "- left click on a cluster to expand it <br><br>"
+                textString += "- double-click on an exploded cluster to implode it (as well as implode all of its inner exploded clusters) <br><br>"
+                textString += "- zoom-in/out with the mouse wheel <br><br>"
+                textString += "- hold left click and drag the cursor to pan <br><br>"
+                textString += "- click on any of the Load graph options to load a new example, or upload your own graph <br><br>"
+                textString += "- Download graph lets you download the JSON file of the currently drawn graph <br><br>"
+                textString += "- JSON graph format: two name/value pairs, clusters and edges <br><br>"
+                textString += "--- clusters: a list of node numbers and lists representing the tree structure of the clustered graph <br><br>"
+                textString += "--- edges: adjacency lists representing directed edges between nodes";
 
 	        var plane = container.append("rect")
 	        		.attr("class","info")
@@ -212,7 +221,7 @@
 	                .attr("x", window.innerWidth-500)
 	                .attr("y", 0)
 	                .attr("width", 500)
-	                .attr("height", window.innerHeight-100)
+	                .attr("height", window.innerHeight-102)
 	                .attr("opacity",0.9)
 	                .on("click",removeInfoArea);
 	        
@@ -220,8 +229,8 @@
 	        		.attr("class","info")
 	                .attr("x", window.innerWidth-500)
 	                .attr("y", 0)
-	                .attr("width", 500)
-	                .attr("height", window.innerHeight-100)
+	                .attr("width", 480)
+	                .attr("height", window.innerHeight-102)
 	                .on("click",removeInfoArea)
 	                .append("xhtml:body")
 	                .style("color", menu_text_color)
@@ -255,7 +264,8 @@
 
 		if(!thisCreditsIsVisible){
 
-	        var textString = "Authors: Luca Emili & Matteo Cesari, Academic year: 2019-2020";
+	        var textString =  "Authors: Luca Emili & Matteo Cesari<br>"
+                textString += "Project made for <a href='https://www.uniroma3.it/en'>Roma Tre</a>'s <a href='https://www.dia.uniroma3.it/~infovis/'>Information Visualization course</a>, academic year 2019-2020";
 
 	        var plane = container.append("rect")
 	        		.attr("class","credits")
@@ -269,18 +279,36 @@
 	                .attr("opacity",0.9)
 	                .on("click",removeCreditsArea);
 
-	        var textArea = container.append("text")
+	        /*var textArea = container.append("text")
 	        		.attr("class","credits")
 	                .attr("x", window.innerWidth/2)
 	                .attr("y", window.innerHeight-40)
-	                .attr("font-family","sans-serif")
+	                .attr("font-family","Ubuntu")
 	                .style("text-anchor", "middle")
 	                .text(textString)
 	                .style("font-size", 50)
 	                .attr("fill", menu_text_color)
 	                .style("text-shadow","2px 2px #000000")
 	                .style("font-family","Ubuntu")
+	                .on("click",removeCreditsArea);*/
+            
+            var htmlBody = container.append("foreignObject")
+	        		.attr("class","credits")
+	                .attr("x", 0)
+	                .attr("y", window.innerHeight-100)
+	                .attr("width", window.innerWidth)
+	                .attr("height", 100)
+	                .on("click",removeCreditsArea)
+	                .append("xhtml:body")
+	                .style("color", menu_text_color)
+	                .style("font-size", "22px")
+	                .style("text-shadow","2px 2px #000000")
+	                .style("font-family","Ubuntu")
+	                .style("line-height","1.25em")
+                    .style("text-align", "center")
 	                .on("click",removeCreditsArea);
+            
+            htmlBody.html(textString).on("click",removeInfoArea);
 
 	        creditsIsVisible = true;
 		
