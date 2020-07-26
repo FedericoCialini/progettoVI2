@@ -57,8 +57,13 @@
         
     
     var currentZoomScale = 1;
+    var currentZoomX = 0;
+    var currentZoomY = 0;
+    
     var zoom = d3.zoom().on("zoom", function() {
             currentZoomScale = d3.event.transform.k;
+            currentZoomX = d3.event.transform.x;
+            currentZoomY = d3.event.transform.y;
             workarea.attr("transform", d3.event.transform);
         });
     
@@ -79,7 +84,7 @@
         container.attr("width",newWidth).attr("height",newHeight);
         updateMenuScale(base_container_width, base_container_height, newWidth, newHeight);
         //if(typeof id2plane !== 'undefined') panAndZoomToRootPlaneCenter(id2plane['0']);
-        //panAndZoomToCurrentWorkareaCenter(oldContainerWidth, oldContainerHeight, innerWidth, innerHeight);
+        panAndZoomToCurrentWorkareaCenter(base_container_width, base_container_height, newWidth, newHeight);
     }
         
     resize_container();
@@ -510,7 +515,7 @@
                         .attr("class","node")
                         .attr("x", x + (this.elementCoords[i][0] - 1) * distance)
                         .attr("y", y + (this.elementCoords[i][1] - 1) * distance)
-                        .attr("font-family","sans-serif")
+                        .attr("font-family","Ubuntu")
                         .style("text-anchor", "middle")
                         .text(d)
                         .style("font-size", function(d) {
@@ -1142,6 +1147,8 @@
             .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
             .on("end", function() {
                 container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+                currentZoomX = tx;
+                currentZoomY = ty;
             });
     }
         
@@ -1160,6 +1167,8 @@
             .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
             .on("end", function() {
                 container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+                currentZoomX = tx;
+                currentZoomY = ty;
             });    
     }
         
@@ -1180,6 +1189,8 @@
             .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
             .on("end", function() {
                 container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+                currentZoomX = tx;
+                currentZoomY = ty;
             });    
     }
         
@@ -1197,22 +1208,21 @@
     // WIP
     function panAndZoomToCurrentWorkareaCenter(oldWidth, oldHeight, newWidth, newHeight) {
         
-        var x = workarea.attr("x"); // THIS DOESN'T WORK! T-T
-        var y = workarea.attr("y"); // THIS DOESN'T WORK! T-T
-        
-        console.log(x);
-        console.log(y);
+        var x = currentZoomX;
+        var y = currentZoomY;
         
         currentZoomScale = Math.min(newWidth/oldWidth, newHeight/oldHeight);
 
-        var tx = (-oldWidth/2 - x) * currentZoomScale + newWidth/2;
-        var ty = (-oldHeight/2 - y) * currentZoomScale + newHeight/2;
+        var tx = (newWidth - (oldWidth-x)*currentZoomScale)/2;
+        var ty = (newHeight - (oldHeight-y)*currentZoomScale)/2;
                           
         workarea.transition()
             .duration(animations_duration)
             .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
             .on("end", function() {
                 container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
+                currentZoomX = tx;
+                currentZoomY = ty;
             });    
     }
         
