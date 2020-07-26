@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="lib/d3/d3.min.js"></script>
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu:regular,bold&subset=Latin">
 </head>
-<body link="37c6ff">   <!--link="42a5f5"-->
+<body link="37c6ff">   <!--link changes the color of <a> links-->
     <p hidden><input type="file" id="file-selector"></p>
 	<script type="text/javascript"> 
         
@@ -48,6 +48,9 @@
     const menu_stroke_color = "#202225"
     const menu_text_color = "#eaeaeb"
     
+    const base_container_width = 1833   //we based menu sizes around these
+    const base_container_height = 902
+    
         
     
     //---------------- workarea ----------------//
@@ -61,20 +64,21 @@
     
     var container = d3.select("body")
 		.append("svg")
-		.attr("width", workarea_width).attr("height", workarea_height)
+		.attr("width", base_container_width).attr("height", base_container_height)
         .attr("style", "outline: medium solid black;")
         .call(zoom)
         .on("dblclick.zoom", null);
         
     var workarea = container.append("g");    
+    var currentMenuScale = 1;
     
     function resize_container() {
-    	var innerWidth = window.innerWidth-20;
-    	var innerHeight = window.innerHeight-20;
-        //var oldContainerWidth = container.attr("width");
-        //var oldContainerHeight = container.attr("height");
-        container.attr("width",innerWidth).attr("height",innerHeight);
-        if(typeof id2plane !== 'undefined') panAndZoomToRootPlaneCenter(id2plane['0']);
+    	var newWidth = window.innerWidth-20;
+    	var newHeight = window.innerHeight-20;
+        
+        container.attr("width",newWidth).attr("height",newHeight);
+        updateMenuScale(base_container_width, base_container_height, newWidth, newHeight);
+        //if(typeof id2plane !== 'undefined') panAndZoomToRootPlaneCenter(id2plane['0']);
         //panAndZoomToCurrentWorkareaCenter(oldContainerWidth, oldContainerHeight, innerWidth, innerHeight);
     }
         
@@ -116,6 +120,7 @@
                     .attr("height", 10)
                     .attr("stroke",stroke_color).attr("stroke-width",2)
         hamburger.on("click", function(){showListMenu(menuIsVisible)});
+        hamburger.attr("transform", "scale("+currentMenuScale+")");
     }
         
     function changeHamburgerColors(color, stroke_color) {
@@ -186,8 +191,10 @@
                     loadGraph(examples[2]);});
             load.append(function(){return fileSelector;});
             download = list.append("li").html("Download graph").on("click", downloadGraph);
-	    	info = list.append("li").html("Help").on("click", function(){printInfo(infoIsVisible);});
-			credits = list.append("li").html("Credits").on("click", function(){printCredits(creditsIsVisible);});
+	    	info = list.append("li").html("Show help").on("click", function(){printInfo(infoIsVisible);});
+			credits = list.append("li").html("Show credits").on("click", function(){printCredits(creditsIsVisible);});
+            
+            container.selectAll(".menu").attr("transform", "scale("+currentMenuScale+")");
             
             changeHamburgerColors(menu_text_color, "black");
 
@@ -196,7 +203,11 @@
     	
     }  
 	
-
+    function applyInfoTransform() {
+        var tx = window.innerWidth-20 - base_container_width * currentMenuScale;
+        container.selectAll(".info").attr("transform", "translate("+tx+")scale("+currentMenuScale+")");
+    }
+        
 	function printInfo(thisInfoIsVisible){
 
 		if(!thisInfoIsVisible){
@@ -218,19 +229,23 @@
 	                .attr("fill", menu_bg_color)
 	                .attr("stroke", menu_stroke_color)
 	                .attr("stroke-width",3)
-	                .attr("x", window.innerWidth-500)
+	                //.attr("x", window.innerWidth-500)
+                    .attr("x", base_container_width-500)
 	                .attr("y", 0)
 	                .attr("width", 500)
-	                .attr("height", window.innerHeight-102)
+	                //.attr("height", window.innerHeight-102)
+                    .attr("height", base_container_height-82)
 	                .attr("opacity",0.9)
 	                .on("click",removeInfoArea);
 	        
 	        var htmlBody = container.append("foreignObject")
 	        		.attr("class","info")
-	                .attr("x", window.innerWidth-500)
+	                //.attr("x", window.innerWidth-500)
+                    .attr("x", base_container_width-500)
 	                .attr("y", 0)
 	                .attr("width", 480)
-	                .attr("height", window.innerHeight-102)
+	                //.attr("height", window.innerHeight-102)
+                    .attr("height", base_container_height-82)
 	                .on("click",removeInfoArea)
 	                .append("xhtml:body")
 	                .style("color", menu_text_color)
@@ -241,6 +256,8 @@
 	                .on("click",removeInfoArea);
 
 	        htmlBody.html(textString).on("click",removeInfoArea);
+            
+            applyInfoTransform();
 
 	        infoIsVisible = true;
 
@@ -259,6 +276,12 @@
 		infoIsVisible = false;
 
     }
+        
+    function applyCreditsTransform() {
+        var tx = window.innerWidth-20 - base_container_width*currentMenuScale;
+        var ty = window.innerHeight-20 - base_container_height*currentMenuScale;
+        container.selectAll(".credits").attr("transform", "translate("+tx/2+","+ty+")scale("+currentMenuScale+")");
+    }
 
 	function printCredits(thisCreditsIsVisible){
 
@@ -273,30 +296,21 @@
 	                .attr("stroke", menu_stroke_color)
 	                .attr("stroke-width",3)
 	                .attr("x", 0)
-	                .attr("y", window.innerHeight-100)
-	                .attr("width", window.innerWidth)
+	                //.attr("y", window.innerHeight-100)
+                    .attr("y", base_container_height-80)
+	                //.attr("width", window.innerWidth)
+                    .attr("width", base_container_width)
 	                .attr("height", 100)
 	                .attr("opacity",0.9)
 	                .on("click",removeCreditsArea);
-
-	        /*var textArea = container.append("text")
-	        		.attr("class","credits")
-	                .attr("x", window.innerWidth/2)
-	                .attr("y", window.innerHeight-40)
-	                .attr("font-family","Ubuntu")
-	                .style("text-anchor", "middle")
-	                .text(textString)
-	                .style("font-size", 50)
-	                .attr("fill", menu_text_color)
-	                .style("text-shadow","2px 2px #000000")
-	                .style("font-family","Ubuntu")
-	                .on("click",removeCreditsArea);*/
             
             var htmlBody = container.append("foreignObject")
 	        		.attr("class","credits")
 	                .attr("x", 0)
-	                .attr("y", window.innerHeight-100)
-	                .attr("width", window.innerWidth)
+	                //.attr("y", window.innerHeight-100)
+                    .attr("y", base_container_height-80)
+	                //.attr("width", window.innerWidth)
+                    .attr("width", base_container_width)
 	                .attr("height", 100)
 	                .on("click",removeCreditsArea)
 	                .append("xhtml:body")
@@ -309,6 +323,8 @@
 	                .on("click",removeCreditsArea);
             
             htmlBody.html(textString).on("click",removeCreditsArea);
+            
+            applyCreditsTransform();
 
 	        creditsIsVisible = true;
 		
@@ -1198,6 +1214,16 @@
             .on("end", function() {
                 container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
             });    
+    }
+        
+    function updateMenuScale(oldWidth, oldHeight, newWidth, newHeight) {
+        currentMenuScale = Math.min(newWidth/oldWidth, newHeight/oldHeight);
+        var tx = newWidth - oldWidth*currentMenuScale;
+        var ty = newHeight - oldHeight*currentMenuScale;
+        container.selectAll(".hamburger").attr("transform", "scale("+currentMenuScale+")");
+        container.selectAll(".menu").attr("transform", "scale("+currentMenuScale+")");
+        container.selectAll(".info").attr("transform", "translate("+tx+")scale("+currentMenuScale+")");
+        container.selectAll(".credits").attr("transform", "translate("+tx/2+","+ty+")scale("+currentMenuScale+")");
     }
 
 	</script>
