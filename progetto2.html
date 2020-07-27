@@ -286,6 +286,7 @@
         var tx = window.innerWidth-20 - base_container_width*currentMenuScale;
         var ty = window.innerHeight-20 - base_container_height*currentMenuScale;
         container.selectAll(".credits").attr("transform", "translate("+tx/2+","+ty+")scale("+currentMenuScale+")");
+        container.selectAll(".credits_bg").attr("transform", "translate("+0+","+ty+")scale("+currentMenuScale+")");
     }
 
 	function printCredits(thisCreditsIsVisible){
@@ -296,7 +297,7 @@
                 textString += "Project made for <a href='https://www.uniroma3.it/en'>Roma Tre</a>'s <a href='https://www.dia.uniroma3.it/~infovis/'>Information Visualization course</a>, academic year 2019-2020";
 
 	        var plane = container.append("rect")
-	        		.attr("class","credits")
+	        		.attr("class","credits_bg")
 	                .attr("fill", menu_bg_color)
 	                .attr("stroke", menu_stroke_color)
 	                .attr("stroke-width",3)
@@ -304,7 +305,7 @@
 	                //.attr("y", window.innerHeight-100)
                     .attr("y", base_container_height-80)
 	                //.attr("width", window.innerWidth)
-                    .attr("width", base_container_width)
+                    .attr("width", window.innerWidth / currentMenuScale)
 	                .attr("height", 100)
 	                .attr("opacity",0.9)
 	                .on("click",removeCreditsArea);
@@ -345,6 +346,7 @@
 	function removeCreditsArea(){
 
 		container.selectAll(".credits").remove();
+        container.selectAll(".credits_bg").remove();
 		creditsIsVisible = false;
 
     }
@@ -1234,6 +1236,8 @@
         container.selectAll(".menu").attr("transform", "scale("+currentMenuScale+")");
         container.selectAll(".info").attr("transform", "translate("+tx+")scale("+currentMenuScale+")");
         container.selectAll(".credits").attr("transform", "translate("+tx/2+","+ty+")scale("+currentMenuScale+")");
+        container.selectAll(".credits_bg").attr("width", window.innerWidth / currentMenuScale);
+        container.selectAll(".credits_bg").attr("transform", "translate("+0+","+ty+")scale("+currentMenuScale+")");
     }
 
 	</script>
