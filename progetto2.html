@@ -80,11 +80,13 @@
     function resize_container() {
     	var newWidth = window.innerWidth-20;
     	var newHeight = window.innerHeight-20;
+        var oldWidth = container.attr("width");
+        var oldHeight = container.attr("height");
         
         container.attr("width",newWidth).attr("height",newHeight);
         updateMenuScale(base_container_width, base_container_height, newWidth, newHeight);
         //if(typeof id2plane !== 'undefined') panAndZoomToRootPlaneCenter(id2plane['0']);
-        panAndZoomToCurrentWorkareaCenter(base_container_width, base_container_height, newWidth, newHeight);
+        panAndZoomToCurrentWorkareaCenter(oldWidth, oldHeight, newWidth, newHeight);
     }
         
     resize_container();
@@ -1212,11 +1214,30 @@
         
         var x = currentZoomX;
         var y = currentZoomY;
+        var oldZoomScale = currentZoomScale;
         
-        currentZoomScale = Math.min(newWidth/oldWidth, newHeight/oldHeight);
+        var areaDiff = newWidth*newHeight - oldWidth*oldHeight;
+        if(areaDiff >= 0)
+            currentZoomScale = currentZoomScale * Math.max(newWidth/oldWidth, newHeight/oldHeight);
+        else
+            currentZoomScale = currentZoomScale * Math.min(newWidth/oldWidth, newHeight/oldHeight);
 
-        var tx = (newWidth - (oldWidth-x)*currentZoomScale)/2;
-        var ty = (newHeight - (oldHeight-y)*currentZoomScale)/2;
+        var dx = newWidth/oldWidth;
+        var dy = newHeight/oldHeight;
+        
+        var px = 0;
+        var py = 0;
+        
+        if(areaDiff >= 0) {
+            px = (oldHeight-newHeight)*dy;  // seems to work
+            py = (oldWidth-newWidth)*dx;    // doesn't work :<
+        } else {
+            px = (oldHeight-newHeight)*dx;  // seems to work
+            py = (oldWidth-newWidth)*dy;    // doesn't work :<
+        }
+
+        var tx = (x * currentZoomScale/oldZoomScale) //+ px;
+        var ty = (y * currentZoomScale/oldZoomScale) //+ py;
                           
         workarea.transition()
             .duration(animations_duration)
