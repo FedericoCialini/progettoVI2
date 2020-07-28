@@ -1222,7 +1222,7 @@
         else
             currentZoomScale = currentZoomScale * Math.min(newWidth/oldWidth, newHeight/oldHeight);
 
-        var dx = newWidth/oldWidth;
+        /*var dx = newWidth/oldWidth;
         var dy = newHeight/oldHeight;
         
         var px = 0;
@@ -1234,18 +1234,19 @@
         } else {
             px = (oldHeight-newHeight)*dx;  // seems to work
             py = (oldWidth-newWidth)*dy;    // doesn't work :<
-        }
+        }*/
 
         var tx = (x * currentZoomScale/oldZoomScale) //+ px;
         var ty = (y * currentZoomScale/oldZoomScale) //+ py;
+        
+        currentZoomX = tx;
+        currentZoomY = ty;
                           
         workarea.transition()
-            .duration(animations_duration)
+            //.duration(animations_duration)
             .attr("transform", "translate("+tx+","+ty+")scale("+currentZoomScale+")")
             .on("end", function() {
-                container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));
-                currentZoomX = tx;
-                currentZoomY = ty;
+                container.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(currentZoomScale));      
             });    
     }
         
